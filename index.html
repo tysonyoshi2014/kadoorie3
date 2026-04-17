@@ -1540,9 +1540,9 @@ const checkpoints = {
             title: "極限閃避",
             text: `你哋展現出街頭爛仔每日為咗走鬼同避差佬而練出嚟嘅超強運動神經！滑鏟、側滾翻、縮骨功，你哋好似泥鰍一樣喺致命嘅紅光之中極限穿梭，居然奇蹟般地毫髮無傷穿過咗切割陣！`,
             choices: [
-                { text: "「名校狗，睇清楚未！」衝向最終大門。", next: "A36" },
-                { text: "「我係西九龍保特！」得意忘形。", onEnter: () => modifyStats('sp', 5), next: "A36" },
-                { text: "喺對面大聲催促後面仲未過嚟嘅兄弟。", next: "A36" }
+                { text: "「名校狗，睇清楚未！」衝向最終大門。", next: "A35_5" },
+                { text: "「我係西九龍保特！」得意忘形。", onEnter: () => modifyStats('sp', 5), next: "A35_5" },
+                { text: "喺對面大聲催促後面仲未過嚟嘅兄弟。", next: "A35_5" }
             ]
         },
         "A35": {
@@ -1551,12 +1551,22 @@ const checkpoints = {
             『滋——』血肉被瞬間燒焦切開嘅聲音極度駭人，你痛到幾乎暈厥，留低一地鮮血先勉強爬出激光陣。`,
             onEnter: () => { modifyStats('hp', -20); modifyStats('sp', -10); },
             choices: [
-                { text: "拖著重傷流血嘅身體，咬牙繼續前進。", next: "A36" },
-                { text: "「DLLM... 呢筆數一定要報...」", onEnter: () => modifyStats('sp', 5), next: "A36" },
-                { text: "死死咬住自己件衫袖，唔俾自己痛到大叫出嚟。", next: "A36" }
+                { text: "拖著重傷流血嘅身體，咬牙繼續前進。", next: "A35_5" },
+                { text: "「DLLM... 呢筆數一定要報...」", onEnter: () => modifyStats('sp', 5), next: "A35_5" },
+                { text: "死死咬住自己件衫袖，唔俾自己痛到大叫出嚟。", next: "A35_5" }
             ]
         },
 
+        "A35_5": {
+            title: "絕命擠壓",
+            text: `穿過激光陣，你哋終於衝到處刑室嘅最終大門！但厚重嘅合金大門死死關閉，完全冇解鎖掣。<br><br>
+            身後嘅金屬牆壁已經無情咁逼到埋身，整個空間只淨低不到一米半，死亡嘅壓迫感令人窒息！`,
+            choices: [
+                { text: "「冇退路啦！六兄弟一齊撞開佢！」", isRoll: true, stat: "戰鬥", target: 16, success: "A36", fail: "A37" },
+                { text: "「用『生鏽長螺絲批』卡死牆壁齒輪！」", condition: () => hasItem("生鏽長螺絲批"), consumeItem: "生鏽長螺絲批", next: "SA13" }
+            ]
+        },
+        
         "SA13": {
             title: "支線：齒輪崩壞",
             text: `「死就死啦！」你將手中嗰把『生鏽長螺絲批』狠狠地死力攝入正在移動嘅牆壁底座齒輪入面！<br><br>
@@ -1572,9 +1582,9 @@ const checkpoints = {
             text: `「呀——！！」喺生死存亡嘅極限關頭，EK爛仔潛藏喺骨子裡嘅野性被徹底激發！<br><br>
             你哋六兄弟青筋暴現，眼角甚至谷出血絲。伴隨住一聲震耳欲聾嘅轟鳴，重達數噸嘅合金大門居然被你哋夾硬撞到甩鉸脫軌！厚重嘅大門轟然倒塌，揚起漫天虛擬塵土。`,
             choices: [
-                { text: "成班人失去平衡，重重摔出大門外。", next: "A38" },
-                { text: "趴喺地上面大口大口咁索氣，心臟狂跳。", next: "A38" },
-                { text: "「我哋... 無咁易死！」發出勝利嘅怒吼。", onEnter: () => modifyStats('sp', 10), next: "A38" }
+                { text: "成班人失去平衡，重重摔出大門外。", next: "A37" },
+                { text: "趴喺地上面大口大口咁索氣，心臟狂跳。", next: "A37" },
+                { text: "「我哋... 無咁易死！」發出勝利嘅怒吼。", onEnter: () => modifyStats('sp', 10), next: "A37" }
             ]
         },
         "A37": {
@@ -2629,11 +2639,11 @@ const checkpoints = {
             「係慈航中學嘅『黑虎堂』！成百人呀屌！」<span class='npc-text'>Oscar</span> 嚇到面青。帶頭嘅係一個面有刀疤嘅巨漢，舉起一把關刀：「嘉道理？斬碎佢哋！」`,
             choices: [
                 { text: "「打唔過！跑呀！」轉身狂奔！", isRoll: true, stat: "敏捷", target: 14, success: "B10", fail: "B11" },
-                { text: "「掟火機引爆路邊架廢車！」", condition: () => hasItem("防風火機"), consumeItem: "防風火機", next: "SA4" },
+                { text: "「掟火機引爆路邊架廢車！」", condition: () => hasItem("防風火機"), consumeItem: "防風火機", next: "SB4" },
                 { text: "「死戰到底！殺出條血路！」", isRoll: true, stat: "戰鬥", target: 18, success: "B12", fail: "B11" }
             ]
         },
-        "SA4": {
+        "SB4": {
             title: "支線：汽車炸彈",
             text: `你將火機掟落一部漏緊油嘅廢車度，「轟」一聲巨響！巨大嘅火球將衝喺最前嘅十幾個慈航古惑仔吞噬，成功阻擋咗佢哋嘅腳步！`,
             choices: [
@@ -2872,32 +2882,23 @@ const checkpoints = {
             ]
         },
         "B28": {
-            title: "雙花大紅棍",
-            text: `迷宮嘅盡頭，係一扇通往地底嘅巨大鐵閘。鐵閘前面，坐住一個赤裸上身、成身肌肉、手持兩把生鏽『牛肉刀』嘅光頭佬。<br><br>
-            「我係高雷『雙花大紅棍』。呢度係地下擂台嘅入口。冇請帖，就留低條命。」佢雙刀一揮，斬斷咗旁邊一條鐵柱！`,
-            choices: [
-                { text: "「我對拳頭就係請帖！」", isCombat: true, bossName: "大紅棍", bossHp: 110, bossAtk: 16, success: "B31", fail: "B30" }
-            ]
+    title: "雙花大紅棍",
+    text: `迷宮嘅盡頭，係一扇通往地底嘅巨大鐵閘。鐵閘前面，坐住一個赤裸上身、成身肌肉、手持兩把生鏽『牛肉刀』嘅光頭佬。<br><br>
+    「我係高雷『雙花大紅棍』。呢度係地下擂台嘅入口。冇請帖，就留低條命。」佢雙刀一揮，斬斷咗旁邊一條鐵柱！`,
+    choices: [
+        { 
+            text: "用『重型士巴拿』飛擲爆頭！ [進入戰鬥 - 削弱 Boss]", 
+            condition: () => hasItem("重型士巴拿"), 
+            consumeItem: "重型士巴拿",
+            isCombat: true, bossName: "大紅棍(腦震盪)", bossHp: 70, bossAtk: 10, success: "B31", fail: "B30" 
         },
-        "SB11": {
-            title: "支線：飛擲爆頭",
-            text: `沉重嘅士巴拿好似流星咁掟出，光頭佬避唔切，被狠狠砸中額頭！鮮血直流，佢嘅動作瞬間慢咗半拍！`,
-            choices: [
-                { text: "「趁佢病攞佢命！」", next: "B29" },
-                { text: "「好波！」士氣大增！", onEnter: () => modifyStats('sp', 10), next: "B29" },
-                { text: "直接衝埋去雙刀肉搏！", next: "B29" }
-            ]
-        },
-        "B29": {
-            title: "雙刀流對決",
-            text: `光頭佬嘅雙刀舞得水潑不進，但你同天哥配合默契。你用武器死死架住佢兩把牛肉刀，天哥從後一個飛踢，將佢成個人踢到撞埋鐵閘！<br><br>
-            「呀——！」光頭佬吐出一口鮮血，雙刀甩手。`,
-            choices: [
-                { text: "「死啦你！」準備終結佢！", next: "B31" },
-                { text: "踩住佢心口！", next: "B31" },
-                { text: "冷嘲熱諷佢一番。", onEnter: () => modifyStats('sp', 5), next: "B31" }
-            ]
-        },
+        { 
+            text: "「天哥！我哋左右夾擊！」 [進入戰鬥 - 普通]", 
+            isCombat: true, bossName: "大紅棍", bossHp: 110, bossAtk: 16, success: "B31", fail: "B30" 
+        }
+        ]
+    },
+
         "B30": {
             title: "血肉橫飛",
             text: `紅棍嘅實力太恐怖！佢雙刀一絞，將你嘅武器挑飛，順勢喺你同天哥嘅胸口斬出兩道交叉嘅深深血痕！<br><br>
@@ -3129,9 +3130,25 @@ const checkpoints = {
             text: `暴龍嘅速度同佢巨大嘅體型完全唔成正比！佢一刀揮出，熱能刃直接將擂台嘅鐵柱切斷，高溫辣到你哋面部發痛！<br><br>
             「死啦蟲子！」佢瘋狂連斬，你哋只能夠狼狽咁喺擂台上翻滾逃命。`,
             choices: [
-                { text: "「用『改裝重型電鋸』同佢硬撼！」", condition: () => hasItem("改裝重型電鋸"), consumeItem: "改裝重型電鋸", next: "B47" },
-                { text: "「引佢去『地雷陷阱』！」", condition: () => hasItem("地雷陷阱位置"), consumeItem: "地雷陷阱位置", next: "B47" },
-                { text: "「六虎一齊上！用人海戰術壓死佢！」", isCombat: true, bossName: "高雷暴龍", bossHp: 160, bossAtk: 24, bossImg: "🦖", success: "B47", fail: "B47_FAIL" }
+                { 
+                    text: "用『改裝重型電鋸』硬撼！ [進入戰鬥 - 大幅削弱 Boss]", 
+                    condition: () => hasItem("改裝重型電鋸"), 
+                    consumeItem: "改裝重型電鋸", 
+                    // 有電鋸：Boss 得 80 血，攻擊力得 12
+                    isCombat: true, bossName: "暴龍(被電鋸壓制)", bossHp: 80, bossAtk: 12, bossImg: "🦖", success: "B48", fail: "B47_FAIL" 
+                },
+                { 
+                    text: "引爆『地雷陷阱』炸斷佢腳！ [進入戰鬥 - 削弱 Boss]", 
+                    condition: () => hasItem("地雷陷阱位置"), 
+                    consumeItem: "地雷陷阱位置", 
+                    // 有地雷：Boss 得 110 血，攻擊力 18
+                    isCombat: true, bossName: "暴龍(斷腳)", bossHp: 110, bossAtk: 18, bossImg: "🦖", success: "B48", fail: "B47_FAIL" 
+                },
+                { 
+                    text: "「六虎一齊上！用人海戰術壓死佢！」 [進入戰鬥 - 極難]", 
+                    // 咩都冇：硬食 160 血，攻擊力 24 嘅全盛時期 Boss
+                    isCombat: true, bossName: "高雷暴龍", bossHp: 160, bossAtk: 24, bossImg: "🦖", success: "B48", fail: "B47_FAIL" 
+                }
             ]
         },
         "B47_FAIL": {
@@ -3144,16 +3161,7 @@ const checkpoints = {
                 { text: "雙眼因為極度嘅憤怒流出血淚！", next: "B48" }
             ]
         },
-        "B47": {
-            title: "勢均力敵",
-            text: `你哋用電鋸硬撼熱能刃，或者成功引爆地雷炸毀咗暴龍嘅機械左腳！暴龍發出痛苦嘅狂吼，動作終於慢落嚟。<br><br>
-            「就係依家！佢露出破綻啦！」天哥大叫。`,
-            choices: [
-                { text: "「攞佢命！」", next: "B48" },
-                { text: "「斬碎佢啲義體！」", next: "B48" },
-                { text: "「九龍區要轉天啦！」", onEnter: () => modifyStats('sp', 10), next: "B48" }
-            ]
-        },
+
         "B48": {
             title: "終極血拚",
             text: `「我要你哋死！！」暴龍陷入狂暴狀態，義體超載發出紅光！<br><br>
@@ -3164,17 +3172,7 @@ const checkpoints = {
                 { text: "用盡全身力氣，將武器扭動！", next: "B48_ALT" }
             ]
         },
-        "B48_ALT": {
-            title: "慘烈的絕殺",
-            text: `你雖然刺中核心，但暴龍臨死前嘅反撲極其恐怖！佢一拳將你打到肋骨全碎！<br><br>
-            最後，核心過載爆炸，將暴龍炸成漫天像素！而你哋六兄弟亦都全部重傷倒喺血泊中，只淨下一口氣。`,
-            onEnter: () => modifyStats('hp', -25),
-            choices: [
-                { text: "「贏... 贏咗...」", next: "B49" },
-                { text: "望住天花板苦笑。", next: "B49" },
-                { text: "痛到連歡呼嘅力氣都冇。", next: "B49" }
-            ]
-        },
+
         "B49": {
             title: "奪權與真相",
             text: `暴龍戰死，全場幾千個古惑仔陷入死寂，隨後爆發出瘋狂嘅歡呼聲！喺廢城，強者為尊！你哋依家係 Scrap Zone 嘅新霸主！<br><br>
@@ -3571,11 +3569,11 @@ const checkpoints = {
         },
         "B76": {
             title: "主堡大殿",
-            text: `你哋推開主堡厚重嘅大門。入面係一個裝飾得極其浮誇、猶如軍閥宮殿般嘅大堂。<br><br>
-            大堂盡頭嘅王座上，坐住一個披住猛獸皮草、臉上有一道巨大刀疤嘅男人。佢就係 Scrap Zone 嘅絕對統治者——【廢城軍閥】。<br>
+            text: `大堂盡頭嘅王座上，坐住一個披住猛獸皮草、臉上有一道巨大刀疤嘅男人。佢就係 Scrap Zone 嘅絕對統治者——【廢城軍閥】。<br><br>
             佢正把玩住手上一把散發住紅色高溫嘅『等離子斬馬刀』。`,
             choices: [
-                { text: "「踩住你條屍上去！嘉道理六虎一齊上！」", isCombat: true, bossName: "廢城軍閥", bossHp: 200, bossAtk: 28, success: "B87", fail: "B85" }
+                { text: "「你就係軍閥？！」", next: "B77" },
+                { text: "兄弟，準備迎戰。", next: "B77" }
             ]
         },
         "B77": {
@@ -3626,7 +3624,8 @@ const checkpoints = {
             choices: [
                 { text: "「閃開！！」向兩側極限翻滾！", isRoll: true, stat: "敏捷", target: 16, success: "B82", fail: "B83" },
                 { text: "開啟『充能護盾發生器』過載擋格！", condition: () => hasItem("充能護盾發生器"), consumeItem: "充能護盾發生器", next: "SB33" },
-                { text: "「天哥！攻佢下盤！」趁佢跳起突襲！", isCombat: true, bossName: "廢城軍閥", bossHp: 300, bossAtk: 28, bossImg: "👹", success: "B82", fail: "B83" }
+                // 👇 將原本的 isCombat 改為純粹的戰鬥 Roll 檢定
+                { text: "「天哥！攻佢下盤！」趁佢跳起突襲！", isRoll: true, stat: "戰鬥", target: 18, success: "B82", fail: "B83" } 
             ]
         },
         "SB33": {
@@ -3673,9 +3672,17 @@ const checkpoints = {
             text: `軍閥雖然武力恐怖，但大意輕敵。「你班垃圾，死啦！」佢橫向一刀掃過嚟，準備將你哋攔腰斬斷！<br><br>
             但天哥眼利，大叫一聲：「Lag機！佢背脊條金屬脊椎係外露嘅義體散熱位！攻嗰度！」`,
             choices: [
-                { text: "「天哥！你正面引開佢！我繞背！」", isRoll: true, stat: "敏捷", target: 16, success: "B86", fail: "B85" },
-                { text: "「用『短管散彈槍』轟佢背脊！」", condition: () => hasItem("短管散彈槍"), consumeItem: "短管散彈槍", next: "SB35" },
-                { text: "「六虎一齊上！用命填死佢！」", isRoll: true, stat: "戰鬥", target: 18, success: "B86", fail: "B85" }
+                { 
+                    text: "用『短管散彈槍』轟佢背脊！", 
+                    condition: () => hasItem("短管散彈槍"), 
+                    consumeItem: "短管散彈槍", 
+                    // 👇 勝利去 B86 睇絕殺劇情，失敗去 B85 垂死掙扎
+                    isCombat: true, bossName: "廢城軍閥(散熱受損)", bossHp: 180, bossAtk: 15, bossImg: "👹", success: "B86", fail: "B85" 
+                },
+                { 
+                    text: "「六虎一齊上！用命填死佢！」", 
+                    isCombat: true, bossName: "廢城軍閥", bossHp: 250, bossAtk: 28, bossImg: "👹", success: "B86", fail: "B85" 
+                }
             ]
         },
         "SB35": {
@@ -4554,26 +4561,7 @@ const checkpoints = {
                 { text: "拍熄身上嘅火星。", next: "C42" }
             ]
         },
-        "C42": {
-            title: "飛虎神兵",
-            text: `你哋避開咗致命嘅箭雨，但名校童軍團展現出極強嘅戰術素養。佢哋用帶有飛虎爪嘅繩索，精準咁勾住城牆，十幾個裝備精良嘅精英童軍猶如特種部隊咁飛身躍上城牆！`,
-            choices: [
-                { text: "「斬斷佢哋啲繩！」", isRoll: true, stat: "戰鬥", target: 16, success: "C44", fail: "C43" },
-                { text: "「用『軍用開山刀』連人帶繩劈落去！」", condition: () => hasItem("軍用開山刀"), consumeItem: "軍用開山刀", next: "C44" },
-                { text: "「退落庭院！同佢哋打巷戰！」", next: "SC18" }
-            ]
-        },
-        "C43": {
-            title: "火海中箭",
-            text: `童軍嘅動作太快，你哋防守不及！幾個童軍一上城牆就拔出軍用匕首同你哋肉搏！<br><br>
-            混亂中，你大腿中咗一箭，天哥背脊被劃出長長血痕。你哋被逼放棄城牆，由樓梯滾落火光熊熊嘅庭院！`,
-            onEnter: () => { modifyStats('hp', -20); modifyStats('sp', -10); },
-            choices: [
-                { text: "「痛死老豆... 頂住呀！」", next: "C45" },
-                { text: "啪一啖『藍妹啤酒』麻醉自己！", condition: () => hasItem("半打藍妹啤酒"), consumeItem: "半打藍妹啤酒", onEnter: () => modifyStats('hp', 10), next: "C45" },
-                { text: "咬住牙拔出大腿上嘅箭！", onEnter: () => modifyStats('sp', 10), next: "C45" }
-            ]
-        },
+        
         "SC18": {
             title: "支線：客家迷宮",
             text: `你哋主動放棄城牆，退入圍村錯綜複雜嘅橫街窄巷。客家圍村嘅設計本身就係為咗防山賊，你哋利用地形，成功伏擊咗幾個追落嚟嘅童軍！`,
