@@ -124,6 +124,25 @@
         .butterfly-msg { position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.9); color: var(--apex-blue); padding: 15px 25px; border: 1px solid var(--apex-blue); font-weight: bold; display: none; z-index: 3000; box-shadow: 0 0 15px rgba(0,229,255,0.5); font-family: monospace; }
         
         .system-msg { background: rgba(255, 23, 68, 0.1); padding: 10px; border-left: 4px solid var(--danger-color); margin: 15px 0; font-family: monospace; color: #ff8a80; }
+
+        /* ------------------------------------------ */
+        /* ✨ 喺呢度貼入新嘅戰鬥動畫特效 */
+        /* ------------------------------------------ */
+        /* 擊中閃爍與震動 */
+        .flicker-anim { animation: flicker 0.3s ease-out; }
+        .hard-shake-anim { animation: hard-shake 0.3s ease-out; }
+        
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0; filter: brightness(5); } }
+        @keyframes hard-shake { 0% { transform: translate(2px, 2px); } 20% { transform: translate(-3px, -2px); } 40% { transform: translate(-5px, 0px); } 60% { transform: translate(5px, 2px); } 100% { transform: translate(0,0); } }
+
+        /* 技能文字彈入 */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        #combat-log div { animation: slideInUp 0.2s ease-out forwards; }
+        /* ------------------------------------------ */
+
     </style>
 </head>
 <body>
@@ -178,11 +197,103 @@
 </div>
 
 <div id="dice-overlay">
-    <div id="dice-title" style="font-size: 1.5em; margin-bottom: 10px; color: #fff; font-family: monospace;">[ 系統運算中 ]</div>
-    <div class="dice-anim" id="dice-val">00</div>
-    <div id="dice-res" style="font-size: 2em; margin-bottom: 30px;"></div>
-    <button class="choice-btn" style="width: 250px; text-align: center; padding-left: 15px;" id="dice-btn">確認 (Enter)</button>
+    <div id="dice-title" style="color: #888; margin-bottom: 10px; font-family: monospace;">[ 系統檢定 ]</div>
+    <div id="dice-val" class="dice-anim">00</div>
+    <div id="dice-res" style="text-align: center; margin-bottom: 20px; font-size: 1.2em; line-height: 1.5;"></div>
+    <button id="dice-btn" class="choice-btn" style="width: 200px; text-align: center; padding-left: 15px; display: none; margin: 0 auto;">確定</button>
 </div>
+
+<div id="combat-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2500; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="width: 95%; max-width: 800px; background: #0a0f1a; border: 2px solid var(--apex-blue); padding: 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 50px rgba(0,229,255,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="color: var(--apex-blue); font-weight: bold; letter-spacing: 2px; font-family: monospace;">NEURA-LINK SYSTEM v2.5</div>
+            <div style="background: var(--danger-color); color: #fff; padding: 2px 10px; font-size: 0.8em; animation: pulse 1s infinite;">AUTO BATTLE</div>
+        </div>
+
+        <div id="battle-arena" style="display: flex; justify-content: space-between; align-items: center; height: 280px; position: relative; border-bottom: 1px solid #222; padding-bottom: 15px;">
+            
+            <div id="player-fighter" style="text-align: center; width: 42%; transition: transform 0.2s;">
+                <div style="color: var(--apex-blue); font-weight: bold; margin-bottom: 5px;">Lag機 (你)</div>
+                <div id="player-sprite" style="font-size: 5.5em; text-shadow: 0 0 20px rgba(0,229,255,0.5);">🧑‍💻</div>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #ccc;"><span>HP</span><span id="player-hp-text">100/100</span></div>
+                    <div style="width: 100%; height: 8px; background: #111; margin-top: 4px; border: 1px solid #333;"><div id="player-hp-bar" style="width: 100%; height: 100%; background: var(--apex-blue); transition: width 0.3s;"></div></div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #bb86fc; margin-top: 5px;"><span>MP</span><span id="player-mp-text">0/100</span></div>
+                    <div style="width: 100%; height: 4px; background: #111; margin-top: 4px; border: 1px solid #333;"><div id="player-mp-bar" style="width: 0%; height: 100%; background: #bb86fc; transition: width 0.5s;"></div></div>
+                </div>
+            </div>
+
+            <div id="combat-effect-container" style="position: absolute; width: 100%; height: 100%; pointer-events: none; top:0; left:0;">
+                <div id="vs-icon" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5em; color: #333; font-weight: bold; font-style: italic;">VS</div>
+            </div>
+
+            <div id="boss-fighter" style="text-align: center; width: 42%; transition: transform 0.2s;">
+                <div id="boss-name" style="color: var(--danger-color); font-weight: bold; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">BOSS</div>
+                <div id="boss-sprite" style="font-size: 5.5em; text-shadow: 0 0 20px rgba(255,23,68,0.5);">👹</div>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #ccc;"><span>SYSTEM CORE</span><span id="boss-hp-text">100/100</span></div>
+                    <div style="width: 100%; height: 8px; background: #111; margin-top: 4px; border: 1px solid #333;"><div id="boss-hp-bar" style="width: 100%; height: 100%; background: var(--danger-color); transition: width 0.3s;"></div></div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #ff80ab; margin-top: 5px;"><span>POWER</span><span id="boss-mp-text">0/100</span></div>
+                    <div style="width: 100%; height: 4px; background: #111; margin-top: 4px; border: 1px solid #333;"><div id="boss-mp-bar" style="width: 0%; height: 100%; background: #ff80ab; transition: width 0.5s;"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="combat-log" style="height: 150px; overflow-y: auto; background: rgba(0,0,0,0.4); margin-top: 20px; padding: 15px; color: #ccc; font-size: 0.95em; line-height: 1.6; display: flex; flex-direction: column-reverse; scroll-behavior: smooth; border: 1px solid #222; border-radius: 4px;">
+            <div style="color: #666;">[系統] 正在連接神經元...</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- 💥 戰鬥視覺效果精華版 --- */
+    @keyframes pulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
+    
+    /* 玩家攻擊：藍色激光接駁 */
+    @keyframes player-atk-beam {
+        0% { width: 0%; opacity: 0; left: 40%; background: linear-gradient(90deg, transparent, var(--apex-blue), #fff); }
+        30% { width: 30%; opacity: 1; left: 40%; }
+        70% { width: 30%; opacity: 1; left: 50%; }
+        100% { width: 0%; opacity: 0; left: 75%; }
+    }
+    .player-atk-effect {
+        position: absolute; top: 45%; height: 6px; border-radius: 3px; z-index: 100;
+        box-shadow: 0 0 15px var(--apex-blue);
+        animation: player-atk-beam 0.5s ease-out forwards;
+    }
+
+    /* Boss 攻擊：紅色爆裂接駁 */
+    @keyframes boss-atk-crack {
+        0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+        20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+    }
+    .boss-atk-effect {
+        position: absolute; top: 40%; left: 50%; width: 150px; height: 150px; border-radius: 50%; z-index: 100;
+        background: radial-gradient(circle, var(--danger-color) 0%, transparent 70%);
+        border: 2px solid var(--danger-color);
+        animation: boss-atk-crack 0.5s ease-out forwards;
+    }
+
+    /* 受擊震動 */
+    .hard-shake-anim { animation: hard-shake 0.3s ease-out; }
+    @keyframes hard-shake { 0% { transform: translate(2px, 2px); } 20% { transform: translate(-5px, -3px); } 40% { transform: translate(-5px, 2px); } 100% { transform: translate(0,0); } }
+
+    /* 文字滑入動畫 */
+    @keyframes logSlide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    #combat-log div { animation: logSlide 0.2s ease-out forwards; border-left: 3px solid #444; padding-left: 10px; margin-bottom: 8px; }
+
+    /* 震屏效果強化 */
+    @keyframes shake-screen {
+        0% { transform: translate(1px, 1px) rotate(0deg); }
+        10% { transform: translate(-1px, -2px) rotate(-1deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        50% { transform: translate(-1px, 2px) rotate(1deg); }
+        100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+    .shake-screen-anim { animation: shake-screen 0.3s ease-in-out; }
+</style>
 
 <script>
     // --- 核心系統與狀態管理 ---
@@ -339,19 +450,210 @@
                 clearInterval(itv);
                 let roll = Math.floor(Math.random() * 20) + 1;
                 let total = roll + bonus;
-                let detail = `D20 (${roll}) ` + (bonus > 0 ? `+ 隊伍/裝備加成 (${bonus})` : '') + ` = ${total}`;
+                
+                // 【核心修改】呢段就係顯示加成嘅詳細計算法
+                let detail = `基礎 D20 (${roll}) ` + (bonus > 0 ? `+ 隊伍/裝備加成 (${bonus})` : '') + ` = ${total}`;
+                
                 val.innerText = String(total).padStart(2, '0');
                 
+                // 將詳細公式 detail 顯示喺 dice-res 裡面
                 if (total >= target) {
-                    res.innerHTML = `<span style="color:var(--success-color);">[ 檢定通過 ]</span><br><small style="font-size:0.5em; color:#888;">${detail}</small>`;
-                    btn.onclick = () => { overlay.style.display = "none"; renderEvent(successId); };
+                    res.innerHTML = `<div style="font-size: 0.75em; color: #888; margin-bottom: 10px;">${detail}</div>` + 
+                                    `<span style="color:var(--success-color); font-weight:bold;">[ 檢定通過 ]</span>`;
+                    btn.onclick = () => { 
+                        overlay.style.display = "none"; 
+                        renderEvent(successId); 
+                    };
                 } else {
-                    res.innerHTML = `<span style="color:var(--danger-color);">[ 檢定失敗 ]</span><br><small style="font-size:0.5em; color:#888;">${detail}</small>`;
-                    btn.onclick = () => { overlay.style.display = "none"; renderEvent(failId); };
+                    res.innerHTML = `<div style="font-size: 0.75em; color: #888; margin-bottom: 10px;">${detail}</div>` + 
+                                    `<span style="color:var(--danger-color); font-weight:bold;">[ 檢定失敗 ]</span>`;
+                    btn.onclick = () => { 
+                        overlay.style.display = "none"; 
+                        renderEvent(failId); 
+                    };
                 }
                 btn.style.display = "block";
             }
         }, 50);
+    }
+
+    // --- 視覺化戰鬥系統 ---
+// ==========================================
+   // ==========================================
+    // ⚔️ 嘉道理終極戰鬥系統 (經典大框框版：玩家 10 招全開 + 平衡數值)
+    // ==========================================
+    let combatState = {
+        active: false, bossMaxHp: 100, bossHp: 100, bossAttack: 15, bossName: "", successId: "", failId: "",
+        playerMp: 0, playerMaxMp: 100, mpRegen: 15,
+        bossMp: 0, bossMaxMp: 100, bossMpRegen: 10
+    };
+
+    // 🧑‍💻 玩家：5 招 MP 主動技
+    const P_MP_SKILLS = [
+        { name: "究極奧義：公開弒", cost: 90, dmgMult: 4.0, color: "#ff1744", msg: "💠 [終極奧義] 集中全校怨念，對系統核心進行維度打擊！" },
+        { name: "數據黑洞", cost: 65, dmgMult: 3.0, color: "#bb86fc", msg: "🌀 [技能] 司徒協助編寫惡意代碼，強行吞噬敵人算力防禦！" },
+        { name: "兄弟連攜攻", cost: 45, dmgMult: 2.4, color: "#00e5ff", msg: "🤝 [技能] 六虎同時現身！從六個方位發動飽和攻擊！" },
+        { name: "鐵摺凳旋風", cost: 30, dmgMult: 2.0, color: "#ffea00", msg: "⚒️ [技能] 將神兵摺凳揮舞得密不透風，打出完美連段！" },
+        { name: "嘉道理重拳", cost: 15, dmgMult: 1.5, color: "#ff9100", msg: "👊 [技能] 充滿屋邨仔怒火的一拳，勢不可擋！" }
+    ];
+
+    // 🧑‍💻 玩家：5 招普攻機率技
+    const P_PROC_SKILLS = [
+        { name: "爆樽", chance: 0.06, dmgMult: 2.2, color: "#ff5252", msg: "🍾 [奇襲] 順手執起藍妹樽，狠狠砸在對方頭上！" },
+        { name: "撩陰腿", chance: 0.06, dmgMult: 1.8, color: "#ff4081", msg: "👟 [陰招] 趁其不備，瞄準下三路使出斷子絕孫腳！" },
+        { name: "插眼", chance: 0.06, dmgMult: 1.6, color: "#7c4dff", msg: "✌️ [陰招] 雙指如電，直取對方視覺傳感器！" },
+        { name: "奪命剪刀腳", chance: 0.06, dmgMult: 2.0, color: "#40c4ff", msg: "🦵 [奇襲] 凌空躍起，用雙腿鎖死對手頸部！" },
+        { name: "噴煙", chance: 0.06, dmgMult: 1.4, color: "#90a4ae", msg: "🚬 [干擾] 對準臉部噴出一口濃煙，對手陷入短暫混亂！" }
+    ];
+
+    // 👹 全 Boss 獨門招式數據庫
+    const BOSS_DATA = {
+        "精英童軍長": { img: "🧑‍✈️", mp: [{ name: "毒霧箭", cost: 45, mult: 1.8, msg: "🏹 [技能] 射出帶毒合金箭！" }, { name: "陷阱佈置", cost: 80, mult: 2.5, msg: "🕸️ [技能] 腳下發生大爆炸！" }], proc: [{ name: "側踢", chance: 0.1, mult: 1.3, msg: "👞 [奇襲] 專業 CQC 側踢！" }, { name: "刀柄打擊", chance: 0.1, mult: 1.2, msg: "🔨 [奇襲] 刀柄狠狠撞擊！" }] },
+        "大紅棍": { img: "👨‍🦲", mp: [{ name: "牛肉刀瘋斬", cost: 40, mult: 1.9, msg: "🔪 [技能] 牛肉刀進入瘋狂亂砍！" }, { name: "紅棍怒火", cost: 75, mult: 2.6, msg: "💢 [技能] 殺氣爆發！" }], proc: [{ name: "頭槌", chance: 0.1, mult: 1.5, msg: "💀 [奇襲] 光頭狠狠撞向你！" }, { name: "吐口水", chance: 0.1, mult: 1.1, msg: "💦 [干擾] 帶血嘅口水噴中你眼！" }] },
+        "廢城軍閥": { img: "🦹", mp: [{ name: "等離子重劈", cost: 60, mult: 2.8, msg: "🔴 [技能] 巨大斬馬刀帶紅光劈落！" }, { name: "霸主咆哮", cost: 90, mult: 4.0, msg: "😱 [終極奧義] 震耳欲聾嘅怒吼重創神經！" }], proc: [{ name: "刀罡掃射", chance: 0.1, mult: 1.5, msg: "💨 [奇襲] 強大氣流將你震飛！" }, { name: "殘酷踐踏", chance: 0.1, mult: 1.7, msg: "👢 [奇襲] 踩住你個頭用力碾壓！" }] },
+        "APEX 會長 (超頻)": { img: "🧛", mp: [{ name: "空間重定義", cost: 50, mult: 2.5, msg: "🧿 [技能] 扭曲數據令你撞牆！" }, { name: "神罰：階級肅清", cost: 95, mult: 4.5, msg: "🛑 [最終奧義] 抹殺一切非精英基因！" }], proc: [{ name: "數據溢位", chance: 0.1, mult: 1.8, msg: "⚠️ [錯誤] 受到不明維度傷害！" }, { name: "冷酷嘲諷", chance: 0.1, mult: 1.4, msg: "🗨️ [干擾] 「底層生物只配做燃料。」" }] },
+        "內部近衛軍": { img: "👮", mp: [{ name: "電擊散彈", cost: 40, mult: 1.8, msg: "⚡ [技能] 發射高壓電標令你麻痺！" }, { name: "鎮暴衝鋒", cost: 70, mult: 2.4, msg: "🛡️ [技能] 舉起盾牌發起坦克式衝撞！" }], proc: [{ name: "警棍毒打", chance: 0.15, mult: 1.4, msg: "🥢 [奇襲] 警棍狠狠抽落肋骨！" }, { name: "熱成像鎖定", chance: 0.1, mult: 1.2, msg: "👁️ [干擾] 全時段追蹤！" }] },
+        "特遣隊指揮官": { img: "👨‍🚀", mp: [{ name: "軍用刺殺術", cost: 50, mult: 2.2, msg: "🗡️ [技能] 專業匕首格鬥，專刺大動脈！" }, { name: "闊刀地雷", cost: 85, mult: 3.0, msg: "💥 [技能] 引爆隱藏地雷！" }], proc: [{ name: "戰術震眩", chance: 0.1, mult: 1.5, msg: "📻 [干擾] 高頻通訊干擾令你頭痛！" }, { name: "軍靴重踩", chance: 0.1, mult: 1.6, msg: "🥾 [奇襲] 鋼頭軍靴踩落腳趾！" }] },
+        "學術部長": { img: "👨‍🎓", mp: [{ name: "精準狙擊", cost: 45, mult: 2.2, msg: "🎯 [技能] 彈道直取要害！" }, { name: "學術爆破", cost: 75, mult: 2.8, msg: "🌫️ [技能] 物理公式計算最強爆炸！" }], proc: [{ name: "公式分析", chance: 0.1, mult: 1.4, msg: "📝 [干擾] 睇穿動作規律反制！" }, { name: "閃光彈", chance: 0.1, mult: 1.2, msg: "✨ [干擾] 戰術閃光彈令你眼前一黑！" }] },
+        "DEFAULT": { img: "👤", mp: [{ name: "系統重擊", cost: 40, mult: 1.5, msg: "⚡ 發動系統性打擊！" }], proc: [{ name: "普通奇襲", chance: 0.1, mult: 1.2, msg: "👊 突然發動快攻！" }] }
+    };
+
+    function safeCheckItem(itemName) { if (typeof state === 'undefined' || !state.inventory) return false; return state.inventory.indexOf(itemName) > -1; }
+    function safeConsumeItem(itemName) { if (typeof state === 'undefined' || !state.inventory) return; let idx = state.inventory.indexOf(itemName); if (idx > -1) state.inventory.splice(idx, 1); if (typeof updateUI === 'function') updateUI(); }
+
+    function startCombat(bossName, hp, attack, sprite, successId, failId) {
+        const data = BOSS_DATA[bossName] || BOSS_DATA["DEFAULT"];
+        const finalImg = data.img || sprite || "👤";
+        combatState = { active: true, bossMaxHp: hp, bossHp: hp, bossAttack: attack, bossName: bossName, successId: successId, failId: failId, playerMp: 0, playerMaxMp: 100, mpRegen: 15, bossMp: 0, bossMaxMp: 100, bossMpRegen: 10 };
+        document.getElementById("boss-name").innerText = bossName;
+        document.getElementById("boss-sprite").innerText = finalImg;
+        document.getElementById("combat-log").innerHTML = `<div style="color:var(--apex-blue); font-weight:bold;">[系統] 終極決戰開始！目標：${bossName}</div>`;
+        document.getElementById("combat-overlay").style.display = "flex";
+        updateCombatUI();
+        setTimeout(autoCombatRound, 1500);
+    }
+
+    function updateCombatUI() {
+        document.getElementById("boss-hp-bar").style.width = (combatState.bossHp / combatState.bossMaxHp * 100) + "%";
+        document.getElementById("boss-hp-text").innerText = `${Math.ceil(combatState.bossHp)} / ${combatState.bossMaxHp}`;
+        document.getElementById("boss-mp-bar").style.width = combatState.bossMp + "%";
+        document.getElementById("boss-mp-text").innerText = `${Math.floor(combatState.bossMp)} / 100`;
+        const currentHp = (typeof state !== 'undefined' && state.hp !== undefined) ? state.hp : 100;
+        document.getElementById("player-hp-bar").style.width = currentHp + "%";
+        document.getElementById("player-hp-text").innerText = `${Math.ceil(currentHp)} / 100`;
+        document.getElementById("player-mp-bar").style.width = combatState.playerMp + "%";
+        document.getElementById("player-mp-text").innerText = `${Math.floor(combatState.playerMp)} / 100`;
+    }
+
+    function logCombat(msg, color = "#ccc") {
+        const log = document.getElementById("combat-log");
+        if (log) log.innerHTML = `<div style="color:${color}; border-left: 4px solid ${color};">${msg}</div>` + log.innerHTML;
+    }
+
+    function triggerHitEffect(targetType, isUlt) {
+        const container = document.getElementById("combat-effect-container");
+        const vsIcon = document.getElementById("vs-icon");
+        const fx = document.createElement("div");
+        const targetSprite = targetType === 'boss' ? document.getElementById("boss-sprite") : document.getElementById("player-sprite");
+
+        if (targetType === 'boss') {
+            fx.className = "player-atk-effect";
+            if (vsIcon) vsIcon.style.opacity = "0"; 
+            setTimeout(() => { if(vsIcon) vsIcon.style.opacity = "1"; }, 500);
+        } else {
+            fx.className = "boss-atk-effect";
+        }
+        if (container) container.appendChild(fx);
+        setTimeout(() => fx.remove(), 600);
+
+        if (targetSprite) {
+            targetSprite.classList.add("hard-shake-anim");
+            targetSprite.style.filter = "brightness(5) saturate(0)";
+            setTimeout(() => { targetSprite.classList.remove("hard-shake-anim"); targetSprite.style.filter = ""; }, 300);
+        }
+    }
+
+    function autoCombatRound() {
+        if (!combatState.active) return;
+        combatState.playerMp = Math.min(100, combatState.playerMp + combatState.mpRegen);
+        combatState.bossMp = Math.min(100, combatState.bossMp + combatState.bossMpRegen);
+        updateCombatUI();
+
+        // --- 🧑‍💻 玩家行動 ---
+        let pBase = Math.floor(Math.random() * 10) + 15; // 提高玩家基礎傷害到 15-25
+        if (safeCheckItem("開山大砍刀") || safeCheckItem("強化高頻電磁刀") || safeCheckItem("高碳鋼狗腿刀") || safeCheckItem("殘破等離子斬馬刀")) pBase += 12;
+        
+        let pSkill = null;
+        const affordable = P_MP_SKILLS.filter(s => combatState.playerMp >= s.cost);
+        if (affordable.length > 0 && (combatState.playerMp >= 60 || Math.random() > 0.5)) {
+            pSkill = { ...affordable[0], type: 'MP' };
+            combatState.playerMp -= pSkill.cost;
+        } else {
+            let roll = Math.random();
+            let cur = 0;
+            for (let s of P_PROC_SKILLS) { cur += s.chance; if (roll < cur) { pSkill = { ...s, type: 'PROC' }; break; } }
+            if (!pSkill) {
+                pSkill = { name: "普通攻擊", dmgMult: 1.0, color: "#ccc", msg: "", type: 'NORMAL' };
+                combatState.playerMp = Math.min(100, combatState.playerMp + 8);
+            }
+        }
+
+        if (Math.random() < 0.1) logCombat(`💨 ${combatState.bossName} 閃避了你的攻擊！`, "var(--apex-blue)");
+        else {
+            let dmg = Math.floor(pBase * pSkill.dmgMult);
+            combatState.bossHp = Math.max(0, combatState.bossHp - dmg);
+            if (pSkill.msg) logCombat(pSkill.msg, pSkill.color);
+            logCombat(`[你] 使用 ${pSkill.name}，造成 **${dmg}** 傷害！`, pSkill.color);
+            triggerHitEffect('boss', pSkill.cost >= 60);
+            document.getElementById("player-fighter").style.transform = "translateX(25px)";
+            setTimeout(() => document.getElementById("player-fighter").style.transform = "translateX(0)", 150);
+        }
+        updateCombatUI();
+        if (combatState.bossHp <= 0) { checkCombatStatus(); return; }
+
+        // --- 👹 Boss 行動 ---
+        setTimeout(() => {
+            if (!combatState.active) return;
+            let bBase = Math.floor((Math.random() * 10 + combatState.bossAttack) / 2.5); // 再削弱 Boss 傷害
+            const data = BOSS_DATA[combatState.bossName] || BOSS_DATA["DEFAULT"];
+            let bSkill = null;
+            const bAfford = data.mp.filter(s => combatState.bossMp >= s.cost);
+            if (bAfford.length > 0 && (combatState.bossMp >= 70 || Math.random() > 0.6)) {
+                bSkill = { ...bAfford[0], type: 'MP' };
+                combatState.bossMp -= bSkill.cost;
+            } else {
+                let roll = Math.random();
+                let cur = 0;
+                for (let s of data.proc) { cur += s.chance; if (roll < cur) { bSkill = { ...s, type: 'PROC' }; break; } }
+                if (!bSkill) bSkill = { name: "普通攻擊", dmgMult: 1.0, color: "#ccc", msg: "", type: 'NORMAL' };
+            }
+
+            if (Math.random() < (safeCheckItem("透明防暴盾") ? 0.35 : 0.15)) logCombat(`💨 你極限翻滾，閃避了 Boss 的打擊！`, "var(--apex-blue)");
+            else {
+                let dmg = Math.floor(bBase * (bSkill.mult || 1.0));
+                state.hp = Math.max(0, state.hp - dmg);
+                if (bSkill.msg) logCombat(bSkill.msg, bSkill.color || "#ff8a80");
+                logCombat(`[${combatState.bossName}] 使用 ${bSkill.name}，造成 **${dmg}** 傷害。`, "#ff8a80");
+                triggerHitEffect('player', bSkill.cost >= 70);
+                document.getElementById("boss-fighter").style.transform = "translateX(-25px)";
+                setTimeout(() => document.getElementById("boss-fighter").style.transform = "translateX(0)", 150);
+                if (state.hp <= 30 && safeCheckItem("納米治癒凝膠")) { state.hp += 35; safeConsumeItem("納米治癒凝膠"); logCombat(`💊 [系統] 自動使用凝膠，HP+35！`, "var(--item-color)"); }
+            }
+            updateCombatUI();
+            if (state.hp <= 0) checkCombatStatus();
+            else setTimeout(autoCombatRound, 2400);
+        }, 1200);
+    }
+
+    function checkCombatStatus() {
+        if (!combatState.active) return;
+        combatState.active = false;
+        const win = combatState.bossHp <= 0;
+        logCombat(win ? `🎉 【決戰勝利】目標已徹底清除！` : `💀 【決戰戰敗】意識正在消失...`, win ? "var(--success-color)" : "var(--danger-color)");
+        setTimeout(() => {
+            document.getElementById("combat-overlay").style.display = "none";
+            renderEvent(win ? combatState.successId : combatState.failId);
+        }, 3000);
     }
 
     // --- 修復後的：自動存檔與讀檔系統 ---
@@ -1576,9 +1878,7 @@ const checkpoints = {
             text: `「啪、啪、啪...」一陣緩慢嘅拍手聲從大堂二樓傳嚟。一個身材極其魁梧、著住緊身白恤衫、戴住『紀律』臂章嘅學生一躍而下，重重砸喺你哋面前。<br><br>
             「我係 SPCC 紀律部長。居然有下水道老鼠可以用通行證入嚟。不過，遊戲到此為止。你哋呢啲垃圾基因，連呼吸要塞嘅空氣都係一種罪。」`,
             choices: [
-                { text: "「你個死大隻佬，食咗藥呀？」", next: "A55" },
-                { text: "「少廢話！打低你就可以上去！」", isRoll: true, stat: "戰鬥", target: 16, success: "A56", fail: "A57" },
-                { text: "「天哥！你對付佢！」", next: "A55" }
+                { text: "「嘉道理六虎，今日要拉你落神壇！」", isCombat: true, bossName: "紀律部長", bossHp: 120, bossAtk: 15, success: "A59", fail: "A58_FAIL" }
             ]
         },
         "A55": {
@@ -1616,7 +1916,7 @@ const checkpoints = {
             「連我一招都接唔住，點做英雄呀？」你哋被打得口吐鮮血，內臟劇痛。`,
             onEnter: () => { modifyStats('hp', -25); modifyStats('sp', -10); },
             choices: [
-                { text: "「DLLM... 我同你拼過！」", next: "A58" },
+                { text: "「DLLM... 我同你死過！」", next: "A58" },
                 { text: "咬實牙根，偷偷執起地上一塊尖銳碎片。", onEnter: () => getItem("大理石碎片"), next: "A58" },
                 { text: "抹走嘴角鮮血，眼神變得凶狠。", onEnter: () => modifyStats('sp', 10), next: "A58" }
             ]
@@ -1628,7 +1928,7 @@ const checkpoints = {
             choices: [
                 { text: "「閃開！」靠走位消耗佢體力！", isRoll: true, stat: "敏捷", target: 16, success: "A59", fail: "A58_FAIL" },
                 { text: "「用『機械狗牙匕首』拮盲佢！」", condition: () => hasItem("機械狗牙匕首"), consumeItem: "機械狗牙匕首", next: "SA25" },
-                { text: "「兄弟齊心！」六個人疊羅漢夾硬壓住佢！", isRoll: true, stat: "戰鬥", target: 17, success: "A59", fail: "A58_FAIL" }
+                { text: "「兄弟齊心！」六個人疊羅漢夾硬壓住佢！", isCombat: true, bossName: "紀律部長", bossHp: 125, bossAtk: 15, bossImg: "🏋️‍♂️", success: "A59", fail: "A58_FAIL" }
             ]
         },
         "SA25": {
@@ -1852,9 +2152,7 @@ const checkpoints = {
             text: `「叮！」升降機門打開，係一個巨大嘅環形會議室。<br><br>
             一個手持重型電磁狙擊槍嘅喇沙書院學生坐喺會議枱盡頭，佢係『學術部長』。「真可惜，差少少就可以喺半空解決你哋。不過，俾你哋見識下真正嘅物理學火力都好。」`,
             choices: [
-                { text: "「狙擊手俾人埋到身，你死定啦！」衝鋒！", isRoll: true, stat: "戰鬥", target: 17, success: "A73", fail: "A74" },
-                { text: "「左右包抄！分散佢火力！」", isRoll: true, stat: "敏捷", target: 16, success: "A73", fail: "A74" },
-                { text: "「司徒！有冇計搞佢把槍？」", next: "A75" }
+                { text: "「我教下你咩叫人體解剖學！」[進入決戰]", isCombat: true, bossName: "學術部長", bossHp: 150, bossAtk: 18, success: "A76", fail: "A74" }
             ]
         },
         "A73": {
@@ -1944,11 +2242,9 @@ const checkpoints = {
             title: "神之傲慢",
             text: `「會長？唔好用人類嗰種低級嘅詞彙嚟稱呼我。」<br><br>
             懸浮喺半空嘅白衣男學生，雙眼已經變成純粹嘅數據藍光。佢背後伸出十幾條猶如觸手般嘅光纖，連接住成個要塞嘅核心伺服器。「我已經同 APEX 嘅中樞部分融合。你哋眼中嘅大逃殺，只不過係我進化成『數碼神明』嘅算力篩選過程。你哋能夠成為我成神嘅燃料，應該感到榮幸。」<br>
-            <span class='npc-text'>天哥</span> 吐落地下：「我屌你老母，讀書讀到壞咗個腦！神你老味！」`,
+            身邊嘅兄弟吐落地下：「我屌你老母，讀書讀到壞咗個腦！神你老味！」`,
             choices: [
-                { text: "「廢話少講！今日就將你呢個神斬落嚟！」衝鋒！", isRoll: true, stat: "戰鬥", target: 16, success: "A82", fail: "A83" },
-                { text: "「司徒，有冇可能駭斷佢背脊啲光纖？」", next: "SA33" },
-                { text: "「大家散開！包抄佢！」", isRoll: true, stat: "敏捷", target: 15, success: "A82", fail: "A83" }
+                { text: "「今日就將你呢個假神斬落嚟！！」", isCombat: true, bossName: "APEX 會長 (超頻)", bossHp: 250, bossAtk: 25, success: "A93", fail: "A89" }
             ]
         },
         "SA33": {
@@ -2580,9 +2876,7 @@ const checkpoints = {
             text: `迷宮嘅盡頭，係一扇通往地底嘅巨大鐵閘。鐵閘前面，坐住一個赤裸上身、成身肌肉、手持兩把生鏽『牛肉刀』嘅光頭佬。<br><br>
             「我係高雷『雙花大紅棍』。呢度係地下擂台嘅入口。冇請帖，就留低條命。」佢雙刀一揮，斬斷咗旁邊一條鐵柱！`,
             choices: [
-                { text: "「我張請帖就係我對拳頭！」正面硬撼！", isRoll: true, stat: "戰鬥", target: 17, success: "B29", fail: "B30" },
-                { text: "「一齊上！用亂棍打死佢！」", isRoll: true, stat: "戰鬥", target: 16, success: "B29", fail: "B30" },
-                { text: "「用『重型士巴拿』掟佢個死人頭！」", condition: () => hasItem("重型士巴拿"), consumeItem: "重型士巴拿", next: "SB11" }
+                { text: "「我對拳頭就係請帖！」", isCombat: true, bossName: "大紅棍", bossHp: 110, bossAtk: 16, success: "B31", fail: "B30" }
             ]
         },
         "SB11": {
@@ -2818,9 +3112,7 @@ const checkpoints = {
             text: `觀眾席爆發出難以置信嘅嘩然。突然，擂台頂部嘅 VIP 包廂爆開，一個身高兩米半、渾身裝滿非法機械義體、猶如怪物般嘅男人跳落擂台！<br><br>
             「居然殺死我嘅屠夫？我係 Scrap Zone 嘅霸主，高雷『暴龍』！今日我要親手將你哋撕成碎片！」佢雙手嘅義體彈出兩把高頻熱能刃。`,
             choices: [
-                { text: "「高雷大佬？隊冧你，我哋就係大佬！」", next: "B46" },
-                { text: "「大家散開，佢啲義體好危險！」", next: "B46" },
-                { text: "「留意周圍有冇機關可以陰佢！」", next: "SB19" }
+                { text: "「廢城今日要換主人！殺！殺！殺！」", isCombat: true, bossName: "高雷暴龍", bossHp: 150, bossAtk: 22, success: "B49", fail: "B47_FAIL" }
             ]
         },
         "SB19": {
@@ -2839,7 +3131,7 @@ const checkpoints = {
             choices: [
                 { text: "「用『改裝重型電鋸』同佢硬撼！」", condition: () => hasItem("改裝重型電鋸"), consumeItem: "改裝重型電鋸", next: "B47" },
                 { text: "「引佢去『地雷陷阱』！」", condition: () => hasItem("地雷陷阱位置"), consumeItem: "地雷陷阱位置", next: "B47" },
-                { text: "「六虎一齊上！用人海戰術壓死佢！」", isRoll: true, stat: "戰鬥", target: 18, success: "B47", fail: "B47_FAIL" }
+                { text: "「六虎一齊上！用人海戰術壓死佢！」", isCombat: true, bossName: "高雷暴龍", bossHp: 160, bossAtk: 24, bossImg: "🦖", success: "B47", fail: "B47_FAIL" }
             ]
         },
         "B47_FAIL": {
@@ -3283,9 +3575,7 @@ const checkpoints = {
             大堂盡頭嘅王座上，坐住一個披住猛獸皮草、臉上有一道巨大刀疤嘅男人。佢就係 Scrap Zone 嘅絕對統治者——【廢城軍閥】。<br>
             佢正把玩住手上一把散發住紅色高溫嘅『等離子斬馬刀』。`,
             choices: [
-                { text: "「你就是軍閥？受死啦！」", next: "B77" },
-                { text: "「落嚟受死！廢城今日要換主人！」", onEnter: () => modifyStats('sp', 10), next: "B77" },
-                { text: "警惕咁觀察周圍環境。", next: "B77" }
+                { text: "「踩住你條屍上去！嘉道理六虎一齊上！」", isCombat: true, bossName: "廢城軍閥", bossHp: 200, bossAtk: 28, success: "B87", fail: "B85" }
             ]
         },
         "B77": {
@@ -3336,7 +3626,7 @@ const checkpoints = {
             choices: [
                 { text: "「閃開！！」向兩側極限翻滾！", isRoll: true, stat: "敏捷", target: 16, success: "B82", fail: "B83" },
                 { text: "開啟『充能護盾發生器』過載擋格！", condition: () => hasItem("充能護盾發生器"), consumeItem: "充能護盾發生器", next: "SB33" },
-                { text: "「天哥！攻佢下盤！」趁佢跳起突襲！", isRoll: true, stat: "戰鬥", target: 17, success: "B82", fail: "B83" }
+                { text: "「天哥！攻佢下盤！」趁佢跳起突襲！", isCombat: true, bossName: "廢城軍閥", bossHp: 300, bossAtk: 28, bossImg: "👹", success: "B82", fail: "B83" }
             ]
         },
         "SB33": {
@@ -4205,10 +4495,56 @@ const checkpoints = {
             「係名校童軍團！佢哋利用散客消耗我哋體力，依家出嚟執死雞！」司徒大叫。`,
             choices: [
                 { text: "「救火先定殺人先？！」", next: "C42" },
-                { text: "「用『童軍對講機』干擾佢哋指揮！」", condition: () => hasItem("童軍對講機"), consumeItem: "童軍對講機", next: "SC17" },
-                { text: "「全部趴低！避開箭雨！」", isRoll: true, stat: "敏捷", target: 15, success: "C42", fail: "C43" }
+                { 
+                    text: "「用『童軍對講機』干擾佢哋指揮！」", 
+                    condition: () => safeCheckItem("童軍對講機"), // 改用安全檢查
+                    consumeItem: "童軍對講機", 
+                    next: "SC17" 
+                },
+                { 
+                    text: "「全部趴低！避開箭雨！」", 
+                    isRoll: true, 
+                    stat: "敏捷", 
+                    target: 15, 
+                    success: "C42", // 成功去飛虎神兵
+                    fail: "C43"    // 失敗去火海中箭
+                }
             ]
         },
+
+        "C42": {
+            title: "飛虎神兵",
+            text: `你哋避開咗致命嘅箭雨，但名校童軍團展現出極強嘅戰術素養。佢哋用帶有飛虎爪嘅繩索，精準咁勾住城牆，十幾個裝備精良嘅精英童軍猶如特種部隊咁飛身躍上城牆！`,
+            choices: [
+                { text: "「斬斷佢哋啲繩！」", isRoll: true, stat: "戰鬥", target: 16, success: "C44", fail: "C43" },
+                { 
+                    text: "「用『軍用開山刀』連人帶繩劈落去！」", 
+                    condition: () => safeCheckItem("軍用開山刀"), // 改用安全檢查
+                    consumeItem: "軍用開山刀", 
+                    next: "C44" 
+                },
+                { text: "「退落庭院！同佢哋打巷戰！」", next: "SC18" }
+            ]
+        },
+
+        "C43": {
+            title: "火海中箭",
+            text: `童軍嘅動作太快，你哋防守不及！幾個童軍一上城牆就拔出軍用匕首同你哋肉搏！<br><br>
+            混亂中，你大腿中咗一箭，天哥背脊被劃出長長血痕。你哋被逼放棄城牆，由樓梯滾落火光熊熊嘅庭院！`,
+            onEnter: () => { modifyStats('hp', -20); modifyStats('sp', -10); },
+            choices: [
+                { text: "「痛死老豆... 頂住呀！」", next: "C45" },
+                { 
+                    text: "啪一啖『藍妹啤酒』麻醉自己！", 
+                    condition: () => safeCheckItem("半打藍妹啤酒"), // 改用安全檢查
+                    consumeItem: "半打藍妹啤酒", 
+                    onEnter: () => modifyStats('hp', 10), 
+                    next: "C45" 
+                },
+                { text: "咬住牙拔出大腿上嘅箭！", onEnter: () => modifyStats('sp', 10), next: "C45" }
+            ]
+        },
+
         "SC17": {
             title: "支線：頻道干擾",
             text: `司徒用對講機發出刺耳噪音，童軍長嘅指揮口令被完全蓋過。箭雨嘅準確度大跌，你哋獲得咗寶貴嘅喘息空間！`,
@@ -4262,9 +4598,7 @@ const checkpoints = {
             text: `「嘭！」圍村殘破嘅大門終於被撞開！<br><br>
             火光之中，水塘邊嗰個童軍長行咗入嚟。佢已經換上咗一套全副武裝嘅防刺服，手持一把散發住冷光嘅高碳鋼狗腿刀。「嘉道理... 偷我啲水，燒我營地。今日，我要你哋成班垃圾陪葬。」`,
             choices: [
-                { text: "「四眼仔，換咗件衫就以為自己好打啲呀？」", next: "C46" },
-                { text: "「天哥！左右夾擊！」", next: "C46" },
-                { text: "喺地下執起一把泥沙準備掟佢！", next: "SC19" }
+                { text: "「四眼仔，收皮啦！」", isCombat: true, bossName: "精英童軍長", bossHp: 130, bossAtk: 18, success: "C47", fail: "C46_FAIL" }
             ]
         },
         "SC19": {
@@ -4279,11 +4613,11 @@ const checkpoints = {
         "C46": {
             title: "泥水血戰",
             text: `童軍長嘅狗腿刀極其致命，每一刀都直取要害！你哋喺泥濘同火海中展開最血腥嘅肉搏。<br><br>
-            天哥嘅鐵通被狗腿刀硬生生斬劈彎，童軍長一腳將天哥踢飛，刀鋒直逼你嘅咽喉！`,
+            兄弟嘅鐵通被狗腿刀硬生生斬劈彎，童軍長一腳將佢踢飛，刀鋒直逼你嘅咽喉！`,
             choices: [
                 { text: "「用『軍用開山刀』硬撼佢把狗腿刀！」", condition: () => hasItem("軍用開山刀"), consumeItem: "軍用開山刀", next: "C47" },
                 { text: "「閃開！攻佢下盤！」", isRoll: true, stat: "敏捷", target: 17, success: "C47", fail: "C46_FAIL" },
-                { text: "「六虎一齊撲上去！壓死佢！」", isRoll: true, stat: "戰鬥", target: 18, success: "C47", fail: "C46_FAIL" }
+                { text: "「六虎一齊撲上去！壓死佢！」", isCombat: true, bossName: "精英童軍長", bossHp: 130, bossAtk: 18, bossImg: "🥷", success: "C47", fail: "C46_FAIL" }
             ]
         },
         "C46_FAIL": {
@@ -4561,9 +4895,7 @@ const checkpoints = {
             text: `距離雷達站大閘得返一百米。大帽山道路中心，企住一個著住黑色戰術大褸嘅學生。佢係名校聯盟『特遣隊指揮官』。<br><br>
             「居然俾幾隻屋邨仔行到上嚟。」指揮官丟低手中嘅對講機：「不過，你哋嘅體力應該已經去到極限。我會親手將你哋踢落山。」`,
             choices: [
-                { text: "「得你一個？我哋有六個呀！」", next: "C64" },
-                { text: "「廢話少講，受死！」", next: "C64" },
-                { text: "「司徒，留意佢有冇同黨。」", isRoll: true, stat: "智力", target: 14, success: "SC28", fail: "C64" }
+                { text: "「我哋屋邨仔條命最硬！死過！」", isCombat: true, bossName: "特遣隊指揮官", bossHp: 140, bossAtk: 20, success: "C68", fail: "C65" }
             ]
         },
         "SC28": {
@@ -4620,9 +4952,9 @@ const checkpoints = {
             text: `「名校仔，你嘅戰術用完啦，依家到我哋屋邨仔嘅回合！」<br><br>
             你哋六個不顧傷勢，好似狼群一樣將指揮官重重包圍。冰冷嘅山路上，你哋放棄所有防守，拳拳到肉！指揮官就算格鬥技術再好，都頂唔住六個唔要命嘅爛仔。`,
             choices: [
-                { text: "「食我一記頭槌！」", isRoll: true, stat: "戰鬥", target: 16, success: "C68", fail: "C69" },
+                { text: "「食我一記頭槌！」", isCombat: true, bossName: "特遣隊指揮官", bossHp: 140, bossAtk: 20, bossImg: "💂", success: "C68", fail: "C69" },
                 { text: "「用『生鏽行山杖』扑爆佢！」", condition: () => hasItem("生鏽行山杖"), consumeItem: "生鏽行山杖", next: "SC30" },
-                { text: "「雞佬！絆跌佢！」", isRoll: true, stat: "敏捷", target: 15, success: "C68", fail: "C69" }
+                { text: "「兄弟們！絆跌佢！」", isRoll: true, stat: "敏捷", target: 15, success: "C68", fail: "C69" }
             ]
         },
         "SC30": {
@@ -4766,9 +5098,7 @@ const checkpoints = {
             text: `你哋啱啱行近防爆門，幾道強光突然打落你哋身上！<br><br>
             「檢測到未授權入侵。啟動內部肅清協議。」四個著住黑色重型鎮暴裝甲、手持高壓電擊散彈槍嘅『APEX 內部近衛軍』從暗處殺出！佢哋嘅裝甲極厚，普通武器根本打唔入。`,
             choices: [
-                { text: "「用『單發麻醉狙擊槍』打佢頭盔縫隙！」", condition: () => hasItem("單發麻醉狙擊槍"), consumeItem: "單發麻醉狙擊槍", next: "SC34" },
-                { text: "「引佢哋過嚟機櫃中間打游擊！」", isRoll: true, stat: "敏捷", target: 16, success: "C79", fail: "C78" },
-                { text: "「天哥！我哋夾硬衝埋去肉搏！」", isRoll: true, stat: "戰鬥", target: 17, success: "C79", fail: "C78" }
+                { text: "「遇神殺神！遇佛殺佛!」[進入戰鬥]", isCombat: true, bossName: "內部近衛軍", bossHp: 160, bossAtk: 24, success: "C80", fail: "C78" }
             ]
         },
         "SC34": {
@@ -5754,9 +6084,13 @@ const checkpoints = {
                     if (ch.consumeItem) useItem(ch.consumeItem);
                     if (ch.onChoose) ch.onChoose();
                     if (ch.onEnter) ch.onEnter();
-                    if (ch.isRoll) {
+                    
+                    if (ch.isCombat) {
+                        // 【新增】觸發真實戰鬥畫面
+                        startCombat(ch.bossName, ch.bossHp, ch.bossAtk, ch.bossImg, ch.success, ch.fail);
+                    } else if (ch.isRoll) {
                         performRoll(ch.stat, ch.target, ch.success, ch.fail);
-                    } else if (ch.next) { // <--- 加入這個 if 判斷，防止 undefined 崩潰
+                    } else if (ch.next) {
                         renderEvent(ch.next);
                     }
                 };
