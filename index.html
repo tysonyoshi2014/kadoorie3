@@ -417,7 +417,110 @@
         if(state.hp <= 30) document.getElementById("hp-fill").style.background = "#b71c1c";
         else document.getElementById("hp-fill").style.background = "var(--danger-color)";
 
-        document.getElementById("inv-list").innerText = state.inventory.join("、 ") || "無";
+        // 👇【核心修改】將裝備變成可點擊嘅標籤
+        const invDiv = document.getElementById("inv-list");
+        invDiv.innerHTML = ""; // 清空
+        if (state.inventory.length === 0) {
+            invDiv.innerText = "無";
+        } else {
+            state.inventory.forEach(item => {
+                const itemSpan = document.createElement("span");
+                itemSpan.innerText = `[${item}] `;
+                itemSpan.style.cursor = "pointer";
+                itemSpan.style.transition = "0.2s";
+                
+                // 加入 Hover 效果
+                itemSpan.onmouseover = () => itemSpan.style.color = "#fff";
+                itemSpan.onmouseout = () => itemSpan.style.color = "var(--item-color)";
+                
+                // 點擊事件：如果係消耗品就隨時使用
+                itemSpan.onclick = () => {
+                    // 定義可以喺非戰鬥狀態點擊使用嘅補給品關鍵字
+                    const healKeywords = ["急救", "繃帶", "醫療", "凝膠", "藥劑", "啤酒", "水丸", "蒸餾水", "能量棒", "肉", "鎮定劑", "醫療針"];
+
+                    if (healKeywords.some(keyword => item.includes(keyword))) {
+                        let healMsg = "";
+                        let isBadEffect = false; // 用嚟判定提示框係咪轉紅色警告
+
+                        // ==========================================
+                        // 👑 T0 級：頂級神藥 (名校 / APEX 專用)
+                        // ==========================================
+                        if (item.includes("終極狂暴藥劑")) {
+                            modifyStats('hp', 50); modifyStats('sp', 50);
+                            healMsg = "💉 啪咗狂暴藥，傷口瞬間癒合，成個人興奮到想打死隻牛！(HP+50, SP+50)";
+                        } 
+                        else if (item.includes("納米治癒凝膠")) {
+                            modifyStats('hp', 40);
+                            healMsg = "🧪 高科技凝膠覆蓋傷口，連疤痕都冇留低！(HP+40)";
+                        } 
+                        else if (item.includes("軍用精神鎮定劑")) {
+                            modifyStats('sp', 40);
+                            healMsg = "💊 打完鎮定劑，大腦前所未有咁清醒，恐懼感一掃而空！(SP+40)";
+                        }
+                        else if (item.includes("特效醫療針")) {
+                            modifyStats('hp', 30);
+                            healMsg = "💉 一針拮落大脾，痛楚全消！(HP+30)";
+                        }
+                        
+                        // ==========================================
+                        // 🍔 T1 級：優質糧水 (回血 + 回精神)
+                        // ==========================================
+                        else if (item.includes("圍村臘肉") || item.includes("能量棒")) {
+                            modifyStats('hp', 15); modifyStats('sp', 15);
+                            healMsg = `🍗 食咗【${item}】，個肚終於有啲嘢落格，舒服晒！(HP+15, SP+15)`;
+                        } 
+                        else if (item.includes("藍妹啤酒")) {
+                            modifyStats('hp', 10); modifyStats('sp', 25);
+                            healMsg = "🍺 大啖灌入啤酒，酒精麻醉咗神經，爽呀！(HP+10, SP+25)";
+                        } 
+                        else if (item.includes("學校急救箱")) {
+                            modifyStats('hp', 25);
+                            healMsg = "🩹 用標準急救用品妥善包紮咗傷口。(HP+25)";
+                        } 
+                        else if (item.includes("醫療噴霧")) {
+                            modifyStats('hp', 20);
+                            healMsg = "💨 噴上冰涼嘅醫療泡沫，成功止血。(HP+20)";
+                        } 
+                        else if (item.includes("蒸餾水") || item.includes("淨水丸")) {
+                            modifyStats('hp', 5); modifyStats('sp', 15);
+                            healMsg = "💧 飲咗乾淨嘅水，喉嚨終於唔再火燒咁痛。(HP+5, SP+15)";
+                        }
+                        
+                        // ==========================================
+                        // ⚠️ T2 級：污糟 / 有副作用嘅劣質補給 (回血但扣精神)
+                        // ==========================================
+                        else if (item.includes("污糟") || item.includes("髒污") || item.includes("染血")) {
+                            modifyStats('hp', 15); modifyStats('sp', -5);
+                            isBadEffect = true;
+                            healMsg = `🩸 用咗【${item}】勉強止血，但陣除太嘔心，精神受挫... (HP+15, SP-5)`;
+                        } 
+                        else if (item.includes("生野豬肉")) {
+                            modifyStats('hp', 10); modifyStats('sp', -10);
+                            isBadEffect = true;
+                            healMsg = "🥩 生吞帶血嘅野豬肉，胃部一陣翻騰，好想嘔... (HP+10, SP-10)";
+                        } 
+                        
+                        // ==========================================
+                        // 預設保底
+                        // ==========================================
+                        else {
+                            modifyStats('hp', 10);
+                            healMsg = `使用了【${item}】，稍微恢復了體力。(HP+10)`;
+                        }
+
+                        // 消耗道具
+                        useItem(item); 
+                        // 觸發對應嘅提示框 (如果係核突嘢就用紅色警告色)
+                        triggerButterfly(healMsg, isBadEffect); 
+                        
+                    } else {
+                        // 玩家點擊武器或劇情道具時的嘲諷提示
+                        triggerButterfly(`【${item}】係武器、裝備或者劇情道具，無得啪落肚㗎！`, true);
+                    }
+                };
+                invDiv.appendChild(itemSpan);
+            });
+        }
     }
 
     function performRoll(stat, target, successId, failId) {
@@ -6048,45 +6151,76 @@ const checkpoints = {
         const area = document.getElementById("choices-area");
         area.innerHTML = "";
 
-        if (ev.choices) {
-            ev.choices.forEach(ch => {
+        // 👇【核心修改】建立一個動態選項陣列
+        let currentChoices = ev.choices ? [...ev.choices] : [];
+
+        // 判斷呢個事件係咪有檢定或戰鬥 (代表有危險)
+        let hasDanger = currentChoices.some(c => c.isRoll || c.isCombat);
+
+        if (hasDanger) {
+            // 例子 1：如果玩家有「背叛者的匕首」，可以無條件暗殺一個檢定難關
+            if (hasItem("背叛者的匕首") && !state.itemUsage["dagger_used"]) {
+                // 搵出呢關原本成功會去邊度
+                let successRoute = currentChoices.find(c => c.success || c.isCombat)?.success || currentChoices[0].next;
+                
+                currentChoices.push({
+                    text: "🗡️ [繼承發動] 亮出『背叛者的匕首』！直接從死角暗殺威脅！(消耗)",
+                    onChoose: () => {
+                        state.itemUsage["dagger_used"] = true; // 標記已使用
+                        useItem("背叛者的匕首");
+                        triggerButterfly("你骨子裡的背叛血液覺醒，直接跳過了系統檢定！", false);
+                    },
+                    next: successRoute // 強制導向成功路線
+                });
+            }
+
+            // 例子 2：如果玩家有「褪色的網吧會員卡」，可以駭入並跳過任何一次骰子檢定
+            if (hasItem("褪色的網吧會員卡") && !state.itemUsage["netcafe_used"] && currentChoices.some(c => c.isRoll)) {
+                let successRoute = currentChoices.find(c => c.isRoll).success;
+                currentChoices.push({
+                    text: "💻 [繼承發動] 刷『褪色的網吧會員卡』！利用舊代碼繞過系統檢定！(消耗)",
+                    onChoose: () => {
+                        state.itemUsage["netcafe_used"] = true;
+                        useItem("褪色的網吧會員卡");
+                        modifyStats('sp', 10);
+                        triggerButterfly("網吧會員卡閃爍出舊時代的榮光，系統強制放行！", false);
+                    },
+                    next: successRoute
+                });
+            }
+        }
+
+        // 👇 接下來，將原本迴圈的 ev.choices 改為 currentChoices
+        if (currentChoices.length > 0) {
+            currentChoices.forEach(ch => {
                 const btn = document.createElement("button");
                 btn.className = "choice-btn";
+                // ... (下方的按鈕生成邏輯保持不變，照你原本的寫法)
                 
-                // 檢查是否帶有條件，且條件未達成 (沒有該道具)
                 if (ch.condition && !ch.condition()) {
-                    btn.disabled = true; // 設置 HTML 原生禁用屬性
-                    
-                    // 嘗試從 consumeItem 讀取道具名稱，如果沒有就寫「特定道具」
+                    btn.disabled = true;
                     let reqText = ch.consumeItem ? ch.consumeItem : "特定道具";
-                    
-                    // 修改按鈕內部 HTML，將原本文字變暗，並在右側加入醒目的紅色警告標籤
                     btn.innerHTML = `<span style="opacity: 0.4;">${ch.text}</span> <span class="req-alert">[ 缺少：${reqText} ]</span>`;
-                    
-                    // 確保點擊無效
                     btn.onclick = null; 
                 } else {
-                    // 正常狀態的按鈕
                     btn.innerHTML = ch.text;
                     btn.onclick = () => {
-                    if (ch.consumeItem) useItem(ch.consumeItem);
-                    if (ch.onChoose) ch.onChoose();
-                    if (ch.onEnter) ch.onEnter();
-                    
-                    if (ch.isCombat) {
-                        // 【新增】觸發真實戰鬥畫面
-                        startCombat(ch.bossName, ch.bossHp, ch.bossAtk, ch.bossImg, ch.success, ch.fail);
-                    } else if (ch.isRoll) {
-                        performRoll(ch.stat, ch.target, ch.success, ch.fail);
-                    } else if (ch.next) {
-                        renderEvent(ch.next);
-                    }
-                };
+                        if (ch.consumeItem) useItem(ch.consumeItem);
+                        if (ch.onChoose) ch.onChoose();
+                        if (ch.onEnter) ch.onEnter();
+                        
+                        if (ch.isCombat) {
+                            startCombat(ch.bossName, ch.bossHp, ch.bossAtk, ch.bossImg, ch.success, ch.fail);
+                        } else if (ch.isRoll) {
+                            performRoll(ch.stat, ch.target, ch.success, ch.fail);
+                        } else if (ch.next) {
+                            renderEvent(ch.next);
+                        }
+                    };
                 }
                 area.appendChild(btn);
             });
-        };
-    }
+        }
 </script>
 </body>
 </html>
