@@ -1514,20 +1514,42 @@ const checkpoints = {
         },
         "A52_FAIL": {
             title: "灰飛煙滅",
-            text: `石頭啱啱掂到金色力場，連聲都冇出就化為一縷青煙！恐怖嘅高溫輻射辣到你面部甩皮，你即刻縮後。硬闖只有死路一條。`,
+            text: `石頭啱啱掂到金色力場，連聲都冇出就化為一縷青煙！恐怖嘅高溫輻射辣到你面部甩皮，你即刻縮後。硬闖只有死路一條。但你哋冇退路...`,
             choices: [
                 { text: "「乖乖地用通行證啦...」", condition: () => hasItem("中央區防火牆通行證"), consumeItem: "中央區防火牆通行證", next: "A53" },
-                { text: "鬧爆個系統。", onEnter: () => modifyStats('sp', 5), next: "A52" },
-                { text: "痛到狂爆粗。", onEnter: () => modifyStats('sp', -5), next: "A52" }
+                { text: "「司徒，冇計啦，夾硬駭停佢五秒！」(極難)", isRoll: true, stat: "智力", target: 17, success: "A53", fail: "A52_DEATH" },
+                { text: "「大家一齊搵下有冇其他入口！」", next: "SA22" }
             ]
         },
+        
+        "A52_DEATH": {
+            title: "高溫蒸發",
+            text: `「防護牆太厚啦！駭唔入呀！」司徒嘅強行入侵觸發咗最高級別防禦機制！<br><br>
+            金色力場瞬間向外擴張，將你哋成班人完全吞噬。你只感覺到一秒鐘嘅極度高溫，連痛楚都未感受得到，所有人已經化為虛無。`,
+            onEnter: () => modifyStats('hp', -100),
+            choices: []
+        },
+
         "SA22": {
-            title: "支線：護衛犬殘骸",
-            text: `狗窿就冇，但你喺草叢搵到一具被燒焦嘅虛擬機械護衛犬，喺佢口度掹咗一粒發光嘅狗牙。`,
+            title: "支線：致命狗窿",
+            text: `你喺草叢搵到一具被燒焦嘅虛擬機械護衛犬殘骸，順手喺佢口度掹咗一粒發光嘅狗牙。<br><br>
+            同時，你發現殘骸旁邊有一個極其狹窄嘅『廢棄通風排氣槽』，直通要塞內部！但入面佈滿高壓電線，不斷閃爍住危險嘅藍色電弧。如果冇通行證，呢度係唯一嘅入口！`,
+            onEnter: () => getItem("機械狗牙匕首"),
             choices: [
-                { text: "收起狗牙", onEnter: () => getItem("機械狗牙匕首"), next: "A52" },
-                { text: "覺得污糟，掟咗佢", onEnter: () => modifyStats('sp', 5), next: "A52" },
-                { text: "一腳踢開殘骸", next: "A52" }
+                { text: "「捐入去！死就死！」(高危閃避)", isRoll: true, stat: "敏捷", target: 16, success: "A53", fail: "SA22_FAIL" },
+                { text: "「太危險... 退返去大門諗計。」", next: "A52" }
+            ]
+        },
+        
+        "SA22_FAIL": {
+            title: "焦頭爛額的潛入",
+            text: `排氣槽入面空間太細，你哋根本避唔開啲高壓電線！<br><br>
+            「呀——！」恐怖嘅電流不斷電擊你哋嘅身體，痛到肌肉痙攣，連頭髮都燒焦！最後你哋係夾硬撞穿個通風網，成班人血肉模糊咁由天花板跌落要塞大堂，付出咗極慘痛嘅代價。`,
+            onEnter: () => { modifyStats('hp', -30); modifyStats('sp', -10); },
+            choices: [
+                { text: "「頂... 痛死老豆...」死撐起身。", next: "A54" },
+                { text: "拍熄身上燒著嘅衫尾。", onEnter: () => modifyStats('sp', -5), next: "A54" },
+                { text: "「總算... 入到嚟...」", next: "A54" }
             ]
         },
         "A53": {
@@ -1761,7 +1783,8 @@ const checkpoints = {
             title: "支線：精神鎮定劑",
             text: `你喺佢消失嘅地方搵到一排『軍用精神鎮定劑』。可以大幅恢復理智。`,
             choices: [
-                { text: "全隊啪藥！", onEnter: () => { getItem("軍用精神鎮定劑"); modifyStats('sp', 25); }, next: "A68" },
+                // 【修復】刪除 getItem("軍用精神鎮定劑")
+                { text: "全隊啪藥！", onEnter: () => { modifyStats('sp', 25); triggerButterfly("理智大幅恢復！"); }, next: "A68" },
                 { text: "收埋備用。", onEnter: () => getItem("軍用精神鎮定劑"), next: "A68" },
                 { text: "「呢啲名校藥有冇副作用㗎？」", next: "A68" }
             ]
@@ -2405,7 +2428,7 @@ const checkpoints = {
             <span class='npc-text'>司徒</span> 敲住終端：「雷達顯示，前面有一個巨大嘅地下空間。高雷中學嘅人佔領咗嗰度做大本營。我哋如果要過核心塔，必須穿過佢哋個地盤。」`,
             choices: [
                 { text: "「高雷？九龍最惡嗰間？正呀！」", onEnter: () => modifyStats('sp', 10), next: "B17" },
-                { text: "「大家趁依家休息下，包紮傷口。」", next: "B17" },
+                { text: "「大家趁依家休息下，包紮傷口。」", onEnter: () => { modifyStats('hp', 15); modifyStats('sp', 10); triggerButterfly("簡單包紮與休息，回復體力！"); }, next: "B17" }, 
                 { text: "喺車房周圍翻找物資。", next: "SB7" }
             ]
         },
@@ -2617,7 +2640,7 @@ const checkpoints = {
             「下面... 就係傳聞中嘅『鬥獸棋擂台』。」司徒吞咗口口水。`,
             choices: [
                 { text: "「入去！睇下有咩牛鬼蛇神！」", next: "B34" },
-                { text: "「大家整理好裝備先落去。」", next: "B34" },
+                { text: "「大家整理好裝備先落去。」", onEnter: () => { modifyStats('sp', 10); triggerButterfly("深呼吸調整狀態，精神力微升。"); }, next: "B34" },
                 { text: "望住深不見底嘅樓梯，深呼吸。", onEnter: () => modifyStats('sp', 5), next: "B34" }
             ]
         },
@@ -2874,7 +2897,8 @@ const checkpoints = {
             title: "支線：暴龍的秘藥",
             text: `你喺包廂搵到幾支高雷高層專用嘅『終極狂暴藥劑』。啪咗可以完全恢復傷勢，但會令人變得極度好戰。`,
             choices: [
-                { text: "「全隊啪藥！滿血復活！」", onEnter: () => { getItem("終極狂暴藥劑"); modifyStats('hp', 50); modifyStats('sp', 10); }, next: "B50" },
+                // 【修復】刪除 getItem("終極狂暴藥劑")，既然即刻食咗，就唔應該再入落背包！
+                { text: "「全隊啪藥！滿血復活！」", onEnter: () => { modifyStats('hp', 50); modifyStats('sp', 10); triggerButterfly("藥效發作，傷勢瞬間痊癒！"); }, next: "B50" },
                 { text: "收起備用，留返打最終 Boss。", onEnter: () => getItem("終極狂暴藥劑"), next: "B50" },
                 { text: "啪一支試下效果！", onEnter: () => modifyStats('hp', 20), next: "B50" }
             ]
@@ -3946,11 +3970,17 @@ const checkpoints = {
         "C26": {
             title: "短暫的勝利",
             text: `名校童軍團被逼撤離水塘，退入深山。你哋嘉道理六虎佔領咗營地。<br><br>
-            「水！係乾淨嘅水！」大家撲向濾水器（或剩餘嘅水桶），瘋狂狂飲。清涼嘅水滑過喉嚨，你哋感覺執返條命。`,
+            「水！係乾淨嘅水！」大家撲向濾水器，瘋狂狂飲。清涼嘅水滑過喉嚨，你哋感覺執返條命。`,
+            // 【邏輯修復】將飲水嘅基本回血放喺 onEnter，所有人一入營地就必定回復！
+            onEnter: () => { 
+                modifyStats('hp', 15); 
+                modifyStats('sp', 15); 
+                triggerButterfly("飲用乾淨水源，大幅恢復體力與理智！"); 
+            },
             choices: [
-                { text: "「大口大口咁飲！」", onEnter: () => { modifyStats('hp', 20); modifyStats('sp', 15); }, next: "C27" },
-                { text: "搜刮營地剩低嘅急救物資！", next: "SC10" },
-                { text: "「大家小心，佢哋可能會反撲。」", next: "C27" }
+                { text: "「大口大口咁飲！飲到飽！」", onEnter: () => modifyStats('hp', 5), next: "C27" },
+                { text: "「留個人睇水，我去搜刮急救物資！」", next: "SC10" },
+                { text: "「大家小心，佢哋可能會反撲。」", onEnter: () => modifyStats('sp', 5), next: "C27" }
             ]
         },
         "SC10": {
@@ -5631,6 +5661,52 @@ const checkpoints = {
         }
     }
 
+    // 【終極完美版】動態文本過濾器：將死咗嘅角色，由仲生存嘅兄弟自動頂上戲份！
+    function processGhostText(text) {
+        if (!text) return text;
+        
+        let newText = text;
+        const charNames = { tin: "天哥", szeto: "司徒", chicken: "雞佬", oscar: "Oscar", hoto: "Hoto" };
+        
+        // 1. 分類生存者同死者 (唔計主角 lag)
+        let aliveKeys = Object.keys(state.team).filter(k => state.team[k] && k !== 'lag');
+        let deadKeys = Object.keys(state.team).filter(k => !state.team[k] && k !== 'lag');
+
+        // 2. 搵出呢段文字入面，未出場嘅生存者 (防止出現 "雞佬同雞佬一齊衝" 嘅撞名Bug)
+        let availableSubstitutes = aliveKeys.filter(k => !text.includes(charNames[k]));
+        
+        // 隨機打亂替補名單，等每次玩都有唔同兄弟做代打
+        availableSubstitutes.sort(() => Math.random() - 0.5);
+
+        // 3. 執行頂替邏輯
+        deadKeys.forEach(deadKey => {
+            let deadName = charNames[deadKey];
+            
+            // 如果文本提到死者
+            if (newText.includes(deadName)) {
+                let replacement = "";
+                
+                if (availableSubstitutes.length > 0) {
+                    // 情況 A：有未撞名嘅兄弟，派佢頂上！
+                    let subKey = availableSubstitutes.pop();
+                    replacement = charNames[subKey];
+                } else if (aliveKeys.length > 0) {
+                    // 情況 B：冇得揀，唯有喺生存者入面隨機抽一個
+                    replacement = charNames[aliveKeys[Math.floor(Math.random() * aliveKeys.length)]];
+                } else {
+                    // 情況 C：兄弟死晒，全部動作變做主角自己做
+                    replacement = "你";
+                }
+                
+                // 全局替換名字
+                let regex = new RegExp(deadName, "g");
+                newText = newText.replace(regex, replacement);
+            }
+        });
+        
+        return newText;
+    }
+
 
      function renderEvent(id) {
         if (id === "RESTART") {
@@ -5647,8 +5723,9 @@ const checkpoints = {
         if (ev.onEnter) ev.onEnter();
         updateUI();
 
-        const content = document.getElementById("content");
-        content.innerHTML = `<div class="scene-title">${ev.title}</div><p style="font-size: 1.1em; line-height: 1.8;">${ev.text}</p>`;
+      const content = document.getElementById("content");
+        let dynamicText = processGhostText(ev.text);
+        content.innerHTML = `<div class="scene-title">${ev.title}</div><p style="font-size: 1.1em; line-height: 1.8;">${dynamicText}</p>`;
         
         const area = document.getElementById("choices-area");
         area.innerHTML = "";
@@ -5676,6 +5753,7 @@ const checkpoints = {
                     btn.onclick = () => {
                     if (ch.consumeItem) useItem(ch.consumeItem);
                     if (ch.onChoose) ch.onChoose();
+                    if (ch.onEnter) ch.onEnter();
                     if (ch.isRoll) {
                         performRoll(ch.stat, ch.target, ch.success, ch.fail);
                     } else if (ch.next) { // <--- 加入這個 if 判斷，防止 undefined 崩潰
