@@ -90,9 +90,11 @@
             font-size: 0.9em;
             border-bottom: 1px solid var(--border-color);
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* 三欄排版 */
             gap: 15px;
         }
+
+        
 
         .status-section { display: flex; flex-direction: column; }
         .character-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
@@ -168,23 +170,91 @@
         </header>
 
         <div id="status-bar">
+            
             <div class="status-section">
                 <div style="color: #888; margin-bottom: 5px; font-family: monospace;">[ 小隊存活狀態 ]</div>
                 <div id="team-list" class="character-list"></div>
-                <div style="margin-top: 10px; color: #888; font-family: monospace;">[ 裝備庫 ] <br><span id="inv-list" class="item-text" style="font-family: sans-serif;">無</span></div>
+                
+                <div style="margin-top: 10px; display: flex; gap: 8px;">
+                    <button class="choice-btn" style="flex: 1; padding: 6px; font-size: 0.8em; text-align: center; border-color: var(--item-color); color: var(--item-color); margin: 0;" onclick="openInventory()">
+                        🎒 背包
+                    </button>
+                    <button class="choice-btn" style="flex: 1; padding: 6px; font-size: 0.8em; text-align: center; border-color: var(--success-color); color: var(--success-color); margin: 0;" onclick="toggleRadar()">
+                        📡 雷達
+                    </button>
+                    <button class="choice-btn" style="flex: 1; padding: 6px; font-size: 0.8em; text-align: center; border-color: #9e9e9e; color: #9e9e9e; margin: 0;" onclick="openSettings()">
+                        ⚙️ 設定
+                    </button>
+                </div>
             </div>
+            
             <div class="status-section">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <span style="color: var(--danger-color); font-weight: bold; font-family: monospace;">生命值 (HP)</span>
+                    <span style="color: var(--danger-color); font-weight: bold; font-family: monospace;">生命值</span>
                     <span id="hp-val" style="color: #fff;">100%</span>
                 </div>
                 <div class="bar-container"><div id="hp-fill"></div></div>
                 
                 <div style="display: flex; justify-content: space-between; margin-top: 10px; margin-bottom: 5px;">
-                    <span style="color: var(--apex-blue); font-weight: bold; font-family: monospace;">精神力 (SP)</span>
+                    <span style="color: var(--apex-blue); font-weight: bold; font-family: monospace;">精神力</span>
                     <span id="sp-val" style="color: #fff;">100%</span>
                 </div>
                 <div class="bar-container"><div id="sp-fill"></div></div>
+            </div>
+
+            <div class="status-section" style="background: rgba(0,0,0,0.4); padding: 10px; border: 1px solid #333; border-radius: 4px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);">
+                <div style="color: #888; margin-bottom: 8px; font-family: monospace; border-bottom: 1px solid #333; padding-bottom: 4px;">[ 戰術面板 ]</div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 4px;">
+                    <span style="color: #ccc;">⚔️ 小隊攻擊力:</span>
+                    <span id="stat-atk" style="color: #fff; font-weight: bold;">12</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 8px;">
+                    <span style="color: #ccc;">🛡️ 小隊迴避率:</span>
+                    <span id="stat-dodge" style="color: #fff; font-weight: bold;">10%</span>
+                </div>
+                <div style="font-size: 0.75em; color: #888; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <div style="background: #111; padding: 4px 6px; border: 1px solid #222; border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <span style="color: var(--danger-color);">武:</span> <span id="equip-weapon" style="color:#ddd;">拳頭</span>
+                    </div>
+                    <div style="background: #111; padding: 4px 6px; border: 1px solid #222; border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <span style="color: var(--apex-blue);">防:</span> <span id="equip-armor" style="color:#ddd;">校服</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="radar-container" style="display: none; position: relative; margin: 15px 30px; border: 1px solid var(--apex-blue); background: #0a0f1a; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); border-radius: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #222; background: rgba(0,0,0,0.5);">
+                <div style="color: var(--success-color); font-size: 0.9em; font-weight: bold; font-family: monospace;">📡 APEX_RADAR_LINK: ACTIVE</div>
+                <button class="choice-btn" style="width: auto; padding: 2px 10px; margin: 0; font-size: 0.8em; border-color: #555; color: #888;" onclick="toggleRadar()">關閉 [X]</button>
+            </div>
+            
+            <div id="radar-map-content" style="width: 100%; height: 200px; background: radial-gradient(circle, #001111 0%, #000 100%); position: relative; overflow: hidden; font-family: monospace;">
+                <div style="position: absolute; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px); background-size: 20px 20px; z-index: 1;"></div>
+                <div style="position: absolute; width: 50%; height: 2px; background: linear-gradient(90deg, transparent, var(--apex-blue)); top: 50%; left: 50%; transform-origin: 0 0; animation: radar-spin 2s linear infinite; z-index: 2; box-shadow: 0 5px 15px rgba(0,229,255,0.6);"></div>
+                
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; color: #555; font-size: 0.7em; text-align: center;">
+                    <div style="width: 4px; height: 4px; background: #555; border-radius: 50%; margin: 0 auto 2px;"></div>起點
+                </div>
+                <div style="position: absolute; top: 90%; left: 90%; transform: translate(-50%, -50%); z-index: 2; color: var(--apex-blue); font-size: 0.7em; text-align: center; text-shadow: 0 0 5px var(--apex-blue);">
+                    <div style="width: 8px; height: 8px; background: var(--apex-blue); border-radius: 50%; margin: 0 auto 2px; box-shadow: 0 0 10px var(--apex-blue);"></div>Tech City
+                </div>
+                <div style="position: absolute; top: 10%; left: 90%; transform: translate(-50%, -50%); z-index: 2; color: var(--danger-color); font-size: 0.7em; text-align: center; text-shadow: 0 0 5px var(--danger-color);">
+                    <div style="width: 8px; height: 8px; background: var(--danger-color); border-radius: 50%; margin: 0 auto 2px; box-shadow: 0 0 10px var(--danger-color);"></div>Scrap Zone
+                </div>
+                <div style="position: absolute; top: 10%; left: 10%; transform: translate(-50%, -50%); z-index: 2; color: var(--success-color); font-size: 0.7em; text-align: center; text-shadow: 0 0 5px var(--success-color);">
+                    <div style="width: 8px; height: 8px; background: var(--success-color); border-radius: 50%; margin: 0 auto 2px; box-shadow: 0 0 10px var(--success-color);"></div>Wilderness
+                </div>
+
+                <div id="radar-checkpoints" style="position: absolute; width: 100%; height: 100%; z-index: 3;"></div>
+
+                <div id="player-radar-node" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4; transition: all 0.8s ease-in-out; display: flex; flex-direction: column; align-items: center;">
+                    <div style="color: #fff; font-size: 0.75em; font-weight: bold; text-shadow: 0 0 5px #fff; margin-bottom: 2px;">YOU</div>
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 15px #fff; animation: pulse 1s infinite;"></div>
+                </div> <div style="position: absolute; bottom: 10px; left: 15px; color: var(--apex-blue); font-family: monospace; font-size: 0.85em; z-index: 10; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; border: 1px solid #333;">
+                    座標 LOC : <span id="radar-loc" style="color: #fff;">UNKNOWN</span><br>
+                    威脅 THREAT: <span id="radar-threat" style="color: var(--danger-color);">SCANNING...</span>
+                </div>
             </div>
         </div>
 
@@ -196,6 +266,64 @@
     </div>
 </div>
 
+<div id="inventory-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,10,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+    <div style="width: 90%; max-width: 700px; height: 80vh; background: #0a0f1a; border: 2px solid var(--item-color); display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(255,234,0,0.1);">
+        
+        <div style="display: flex; border-bottom: 2px solid #222;">
+            <div class="inv-tab active" onclick="switchInvTab('weapon')">⚔️ 武器</div>
+            <div class="inv-tab" onclick="switchInvTab('armor')">🛡️ 防具</div>
+            <div class="inv-tab" onclick="switchInvTab('consumable')">💊 補給</div>
+            <div class="inv-tab" onclick="switchInvTab('quest')">💾 數據</div>
+            <div style="margin-left: auto; padding: 15px; cursor: pointer; color: var(--danger-color); font-weight: bold;" onclick="document.getElementById('inventory-overlay').style.display='none'">[關閉 X]</div>
+        </div>
+
+        <div id="inv-grid" style="flex-grow: 1; padding: 15px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; align-content: start;">
+            </div>
+
+        <div id="inv-details" style="height: 120px; background: #111; border-top: 2px solid var(--item-color); padding: 15px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="detail-name" style="color: var(--item-color); font-weight: bold; font-size: 1.1em;">選擇物品...</div>
+                    <div id="detail-stats" style="color: var(--success-color); font-size: 0.85em; font-weight: bold; background: rgba(0,230,118,0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--success-color); display: none;"></div>
+                </div>
+                <div id="detail-desc" style="color: #aaa; font-size: 0.9em; margin-top: 8px; line-height: 1.4;"></div>
+            </div>
+            <div style="text-align: right;">
+                <button id="detail-use-btn" class="choice-btn" style="display: none; width: auto; padding: 5px 20px; margin: 0; border-color: var(--success-color); color: var(--success-color);" onclick="useItemFromInv()">使用物品</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="settings-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="width: 90%; max-width: 400px; background: #0a0f1a; border: 2px solid #9e9e9e; padding: 25px; box-shadow: 0 0 30px rgba(158,158,158,0.2); text-align: center;">
+        
+        <div style="color: #fff; font-size: 1.5em; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px;">系統設定</div>
+        
+        <div style="margin-bottom: 25px; text-align: left;">
+            <label style="color: var(--item-color); font-weight: bold; display: block; margin-bottom: 10px;">⚔️ 戰鬥難度</label>
+            <div style="display: flex; border: 1px solid #333; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.5);">
+                <div id="diff-easy" class="inv-tab" style="border-bottom: none; border-right: 1px solid #333;" onclick="setDifficulty('easy')">簡單</div>
+                <div id="diff-normal" class="inv-tab active" style="border-bottom: none; border-right: 1px solid #333;" onclick="setDifficulty('normal')">標準</div>
+                <div id="diff-hard" class="inv-tab" style="border-bottom: none;" onclick="setDifficulty('hard')">困難</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label style="color: var(--apex-blue); font-weight: bold; display: block; margin-bottom: 10px;">🎵 背景音樂 (BGM) <span id="bgm-val-text" style="color:#fff; float:right;">30%</span></label>
+            <input type="range" id="bgm-slider" min="0" max="100" value="30" style="width: 100%; cursor: pointer;" oninput="updateVolume('bgm', this.value)">
+        </div>
+
+        <div style="margin-bottom: 30px; text-align: left;">
+            <label style="color: var(--danger-color); font-weight: bold; display: block; margin-bottom: 10px;">💥 戰鬥音效 (SFX) <span id="sfx-val-text" style="color:#fff; float:right;">80%</span></label>
+            <input type="range" id="sfx-slider" min="0" max="100" value="80" style="width: 100%; cursor: pointer;" oninput="updateVolume('sfx', this.value)">
+        </div>
+
+        <button class="choice-btn" style="width: 100%; text-align: center; padding-left: 15px; border-color: #fff; color: #fff; margin-bottom: 10px;" onclick="closeSettings()">返回遊戲</button>
+        <button class="choice-btn" style="width: 100%; text-align: center; padding-left: 15px; border-color: var(--danger-color); color: var(--danger-color);" onclick="returnToMainMenu()">登出系統 (回到主選單)</button>
+    </div>
+</div>
+
 <div id="dice-overlay">
     <div id="dice-title" style="color: #888; margin-bottom: 10px; font-family: monospace;">[ 系統檢定 ]</div>
     <div id="dice-val" class="dice-anim">00</div>
@@ -203,7 +331,24 @@
     <button id="dice-btn" class="choice-btn" style="width: 200px; text-align: center; padding-left: 15px; display: none; margin: 0 auto;">確定</button>
 </div>
 
-<div id="combat-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2500; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+<div id="ice-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 15, 0, 0.95); z-index: 2500; flex-direction: column; align-items: center; justify-content: center; font-family: monospace; border: 5px solid var(--success-color); box-sizing: border-box; background-image: radial-gradient(circle, #002200 0%, #000 100%);">
+    
+    <div style="color: var(--success-color); font-size: 2em; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px var(--success-color); letter-spacing: 5px;">ICE BREAKER PROTOCOL</div>
+    <div style="color: #88cc88; margin-bottom: 30px; font-size: 0.9em;">[ 攔截系統防火牆... 尋找匹配節點 ]</div>
+    
+    <div style="color: #fff; margin-bottom: 10px; font-size: 1.2em;">TARGET SEQUENCE :</div>
+    <div id="ice-target" style="display: flex; gap: 15px; margin-bottom: 25px; font-size: 1.5em; font-weight: bold; color: var(--item-color); text-shadow: 0 0 10px var(--item-color);">
+        </div>
+    
+    <div style="width: 90%; max-width: 400px; height: 12px; background: #111; border: 2px solid var(--success-color); margin-bottom: 30px; box-shadow: 0 0 10px var(--success-color);">
+        <div id="ice-timer-bar" style="width: 100%; height: 100%; background: var(--success-color); transition: width 0.1s linear;"></div>
+    </div>
+    
+    <div id="ice-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 90%; max-width: 400px;">
+        </div>
+</div>
+
+<div id="combat-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2500; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div style="width: 95%; max-width: 800px; background: #0a0f1a; border: 2px solid var(--apex-blue); padding: 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 50px rgba(0,229,255,0.2);">
         
         <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
@@ -211,7 +356,7 @@
             <div style="background: var(--danger-color); color: #fff; padding: 2px 10px; font-size: 0.8em; animation: pulse 1s infinite;">AUTO BATTLE</div>
         </div>
 
-        <div id="battle-arena" style="display: flex; justify-content: space-between; align-items: center; height: 280px; position: relative; border-bottom: 1px solid #222; padding-bottom: 15px;">
+        <div id="battle-arena" style="display: flex; justify-content: space-between; align-items: center; height: 260px; position: relative; border-bottom: 1px solid #222; padding-bottom: 15px;">
             
             <div id="player-fighter" style="text-align: center; width: 42%; transition: transform 0.2s;">
                 <div style="color: var(--apex-blue); font-weight: bold; margin-bottom: 5px;">Lag機 (你)</div>
@@ -225,7 +370,7 @@
             </div>
 
             <div id="combat-effect-container" style="position: absolute; width: 100%; height: 100%; pointer-events: none; top:0; left:0;">
-                <div id="vs-icon" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5em; color: #333; font-weight: bold; font-style: italic;">VS</div>
+                <div id="vs-icon" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5em; color: #444; font-weight: bold; font-style: italic;">VS</div>
             </div>
 
             <div id="boss-fighter" style="text-align: center; width: 42%; transition: transform 0.2s;">
@@ -241,12 +386,26 @@
         </div>
 
         <div id="combat-log" style="height: 150px; overflow-y: auto; background: rgba(0,0,0,0.4); margin-top: 20px; padding: 15px; color: #ccc; font-size: 0.95em; line-height: 1.6; display: flex; flex-direction: column-reverse; scroll-behavior: smooth; border: 1px solid #222; border-radius: 4px;">
-            <div style="color: #666;">[系統] 正在連接神經元...</div>
+            <div style="color: #666;">[系統] 等待數據載入...</div>
         </div>
     </div>
 </div>
 
 <style>
+    @keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* --- ⚙️ 設定拉桿樣式 --- */
+    input[type=range] { -webkit-appearance: none; background: transparent; }
+    input[type=range]:focus { outline: none; }
+    /* 軌道 */
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #222; border: 1px solid #444; border-radius: 4px; }
+    /* 拉桿掣 */
+    input[type=range]::-webkit-slider-thumb { height: 20px; width: 20px; border-radius: 50%; background: #fff; cursor: pointer; -webkit-appearance: none; margin-top: -7px; box-shadow: 0 0 10px rgba(255,255,255,0.5); transition: 0.2s; }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    
+    #bgm-slider::-webkit-slider-thumb { background: var(--apex-blue); box-shadow: 0 0 10px var(--apex-blue); }
+    #sfx-slider::-webkit-slider-thumb { background: var(--danger-color); box-shadow: 0 0 10px var(--danger-color); }
+
     /* --- 💥 戰鬥視覺效果精華版 --- */
     @keyframes pulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
     
@@ -293,9 +452,285 @@
         100% { transform: translate(1px, -2px) rotate(-1deg); }
     }
     .shake-screen-anim { animation: shake-screen 0.3s ease-in-out; }
+
+    /* --- 🎒 背包系統樣式 --- */
+    .inv-tab { flex: 1; text-align: center; padding: 15px 5px; cursor: pointer; color: #888; font-weight: bold; border-bottom: 2px solid transparent; transition: 0.2s; }
+    .inv-tab:hover { background: rgba(255,234,0,0.1); color: #ccc; }
+    .inv-tab.active { color: var(--item-color); border-bottom-color: var(--item-color); background: rgba(255,234,0,0.05); }
+    .inv-item { background: rgba(0,0,0,0.6); border: 1px solid #333; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; color: #ccc; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80px; }
+    .inv-item:hover { border-color: var(--item-color); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .inv-item.selected { border-color: var(--apex-blue); background: rgba(0, 229, 255, 0.1); color: #fff; }
+    .inv-item-icon { font-size: 2em; margin-bottom: 5px; }
+    .inv-item-name { font-size: 0.85em; font-weight: bold; }
+
+    /* --- 💻 ICE 駭客小遊戲樣式 --- */
+    .ice-btn {
+        background: #001100; border: 1px solid var(--success-color); color: var(--success-color); 
+        padding: 15px 0; font-family: monospace; font-size: 1.3em; font-weight: bold; 
+        cursor: pointer; transition: all 0.2s; box-shadow: inset 0 0 10px rgba(0,230,118,0.2);
+    }
+    .ice-btn:hover:not(:disabled) { 
+        background: var(--success-color); color: #000; transform: scale(1.05); box-shadow: 0 0 15px var(--success-color);
+    }
+    .ice-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+    .ice-shake { animation: hard-shake 0.2s ease-out; background: var(--danger-color) !important; border-color: var(--danger-color) !important; color: #fff !important; }
 </style>
 
 <script>
+    // --- 🗺️ 雷達系統邏輯 ---
+function toggleRadar() {
+    const radar = document.getElementById("radar-container");
+    const openBtn = document.getElementById("open-radar-btn");
+    if (radar.style.display === "none") {
+        radar.style.display = "block";
+        openBtn.style.display = "none";
+        triggerButterfly("全息雷達已連線。");
+    } else {
+        radar.style.display = "none";
+        openBtn.style.display = "block";
+        triggerButterfly("全息雷達已離線。");
+    }
+    playSound('click');
+}
+
+// 根據 EventID 動態更新地圖位置與數據 (動態章節與威脅版)
+function syncMapPosition(eventId) {
+    const locEl = document.getElementById("radar-loc");
+    const threatEl = document.getElementById("radar-threat");
+    const playerNode = document.getElementById("player-radar-node");
+    const cpContainer = document.getElementById("radar-checkpoints"); 
+    
+    if (!locEl || !threatEl) return;
+
+    let locName = "UNKNOWN SECTOR";
+    let threatLevel = "SCANNING...";
+    let threatColor = "var(--apex-blue)";
+    
+    // 處理支線 ID (例如將 SA1 轉為 A1 方便計算)
+    let route = eventId;
+    if (eventId.startsWith("S") && eventId.length > 2) route = eventId.substring(1); 
+
+    // 提取數字進度
+    let numMatch = route.match(/\d+/);
+    let progress = numMatch ? parseInt(numMatch[0]) : 0;
+
+    // 📍 確保白點可見
+    if (playerNode) playerNode.style.opacity = "1";
+
+    // 🗺️ 1. 動態讀取實際章節標題
+    if (typeof events !== 'undefined' && events[eventId]) {
+        // 顯示格式：[A20] 蠻力破門
+        locName = `[${route}]`;
+    } else if (route === "E_ROUTE_A") locName = "[系統] 前往 Tech City";
+    else if (route === "E_ROUTE_B") locName = "[系統] 前往 Scrap Zone";
+    else if (route === "E_ROUTE_C") locName = "[系統] 前往 Wilderness";
+
+    // 🗺️ 2. 智能判斷動態威脅等級 (隨時間/進度變化)
+    if (route.includes("DEATH") || route === "RESTART") {
+        locName = "SYSTEM_VOID (意識斷線)"; threatLevel = "OFFLINE"; threatColor = "#666";
+        if (playerNode) playerNode.style.opacity = "0";
+    }
+    else if (route.startsWith("E") && !route.includes("ROUTE")) {
+        if (progress <= 4) { threatLevel = "MINIMAL (日常安全)"; threatColor = "var(--success-color)"; }
+        else if (progress <= 9) { threatLevel = "LOW (伺服器連接)"; threatColor = "var(--apex-blue)"; }
+        else if (progress <= 14) { threatLevel = "CRITICAL (系統崩壞)"; threatColor = "#ff1744"; }
+        else if (progress <= 19) { threatLevel = "SEVERE (大屠殺)"; threatColor = "#ffea00"; }
+        else { threatLevel = "MODERATE (短暫喘息)"; threatColor = "var(--success-color)"; }
+    } 
+    else if (route.startsWith("A")) {
+        if (progress <= 10) { threatLevel = "HIGH (無人機巡邏)"; threatColor = "#ffea00"; }
+        else if (progress <= 20) { threatLevel = "SEVERE (風紀肅清)"; threatColor = "var(--danger-color)"; }
+        else if (progress <= 38) { threatLevel = "EXTREME (地下處刑室)"; threatColor = "#ff1744"; }
+        else if (progress <= 50) { threatLevel = "HIGH (變異體遊蕩)"; threatColor = "var(--danger-color)"; }
+        else if (progress <= 79) { threatLevel = "CRITICAL (要塞防衛網)"; threatColor = "#ff1744"; }
+        else { threatLevel = "FATAL (神明降臨)"; threatColor = "#b71c1c"; } // 最深色嘅紅
+    } 
+    else if (route.startsWith("B")) {
+        if (progress <= 10) { threatLevel = "HIGH (街頭械鬥)"; threatColor = "#ffea00"; }
+        else if (progress <= 20) { threatLevel = "SEVERE (百人斬)"; threatColor = "var(--danger-color)"; }
+        else if (progress <= 38) { threatLevel = "EXTREME (地下角鬥)"; threatColor = "#ff1744"; }
+        else if (progress <= 50) { threatLevel = "CRITICAL (行刑者)"; threatColor = "#ff1744"; }
+        else if (progress <= 79) { threatLevel = "SEVERE (鋼鐵洪流)"; threatColor = "var(--danger-color)"; }
+        else { threatLevel = "FATAL (暴君之怒)"; threatColor = "#b71c1c"; }
+    } 
+    else if (route.startsWith("C")) {
+        if (progress <= 10) { threatLevel = "MODERATE (失溫危機)"; threatColor = "var(--apex-blue)"; }
+        else if (progress <= 20) { threatLevel = "HIGH (野獸/精英)"; threatColor = "#ffea00"; }
+        else if (progress <= 40) { threatLevel = "CRITICAL (喪屍攻城)"; threatColor = "#ff1744"; }
+        else if (progress <= 50) { threatLevel = "EXTREME (烈火圍城)"; threatColor = "#ff1744"; }
+        else if (progress <= 79) { threatLevel = "SEVERE (雷達站防線)"; threatColor = "var(--danger-color)"; }
+        else { threatLevel = "FATAL (系統抹殺)"; threatColor = "#b71c1c"; }
+    } 
+    else if (route.startsWith("D")) {
+        threatLevel = "FATAL (僱傭兵鎮壓)"; threatColor = "#b71c1c";
+    }
+    // 處理過渡路線
+    else if (route.includes("ROUTE")) {
+        threatLevel = "WARNING (接近危險區)"; threatColor = "#ffea00";
+    }
+
+    // 更新 UI 面板
+    locEl.innerText = locName;
+    threatEl.innerText = threatLevel;
+    threatEl.style.color = threatColor;
+
+    // 📍 動態移動雷達白點
+    let targetLeft = 50; 
+    let targetTop = 50;
+    
+    if (route.startsWith("A") || route.startsWith("B") || route.startsWith("C")) {
+        let moveAmount = Math.min(40, progress * 0.4); 
+        if (route.startsWith("A")) { targetLeft = 50 + moveAmount; targetTop = 50 + moveAmount; } 
+        else if (route.startsWith("B")) { targetLeft = 50 + moveAmount; targetTop = 50 - moveAmount; } 
+        else if (route.startsWith("C")) { targetLeft = 50 - moveAmount; targetTop = 50 - moveAmount; } 
+    } else if (route === "E_ROUTE_B") { targetLeft = 60; targetTop = 40; }
+      else if (route === "E_ROUTE_C") { targetLeft = 40; targetTop = 40; }
+    
+    if (playerNode) {
+        playerNode.style.left = targetLeft + "%";
+        playerNode.style.top = targetTop + "%";
+    }
+
+    // ✨ 動態繪製路線 Checkpoints
+    if (cpContainer) {
+        cpContainer.innerHTML = ""; 
+        
+        let currentPath = "";
+        if (route.startsWith("A")) currentPath = "A";
+        else if (route.startsWith("B")) currentPath = "B";
+        else if (route.startsWith("C")) currentPath = "C";
+
+        if (currentPath) {
+            const checkPoints = [20, 40, 60, 80]; 
+            checkPoints.forEach(cp => {
+                let cpLeft = 50; let cpTop = 50; let offset = cp * 0.4;
+                if (currentPath === "A") { cpLeft += offset; cpTop += offset; }
+                else if (currentPath === "B") { cpLeft += offset; cpTop -= offset; }
+                else if (currentPath === "C") { cpLeft -= offset; cpTop -= offset; }
+                
+                let isPassed = progress >= cp;
+                let color = isPassed ? "var(--item-color)" : "#444"; 
+                let shadow = isPassed ? `box-shadow: 0 0 5px ${color};` : "";
+                
+                let cpNode = document.createElement("div");
+                cpNode.style = `position: absolute; top: ${cpTop}%; left: ${cpLeft}%; transform: translate(-50%, -50%); color: ${color}; font-size: 0.55em; text-align: center; text-shadow: 0 0 2px #000; font-family: monospace; transition: all 0.5s;`;
+                cpNode.innerHTML = `<div style="width: 4px; height: 4px; background: ${color}; border-radius: 50%; margin: 0 auto 2px; ${shadow}"></div>${currentPath}${cp}`;
+                cpContainer.appendChild(cpNode);
+            });
+        }
+    }
+}
+
+    // ==========================================
+    // 🎵 音效與 BGM 系統 (Sound Engine)
+    // ==========================================
+    const sfx = {
+        bgm: new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3'), // Cyberpunk 風格 BGM
+        hit: new Audio('https://actions.google.com/sounds/v1/impacts/crash.ogg'), // 玩家攻擊聲
+        bossHit: new Audio('https://actions.google.com/sounds/v1/weapons/explosion_layer.ogg'), // Boss 爆大招聲
+        heal: new Audio('https://actions.google.com/sounds/v1/magic/magical_ping.ogg'), // 啪藥聲
+        click: new Audio('https://actions.google.com/sounds/v1/ui/button_click.ogg') // 普通撳掣聲
+
+        
+    };
+
+    // ==========================================
+    // ⚙️ 系統設定控制邏輯
+    // ==========================================
+    
+    // 初始化音量 (配合 Slider 預設值)
+    let currentVolumes = { bgm: 0.5, sfx: 0.8 };
+
+    function openSettings() {
+        document.getElementById("settings-overlay").style.display = "flex";
+        // 確保打開時 Slider 數值同步
+        document.getElementById("bgm-slider").value = currentVolumes.bgm * 100;
+        document.getElementById("sfx-slider").value = currentVolumes.sfx * 100;
+        document.getElementById("bgm-val-text").innerText = Math.round(currentVolumes.bgm * 100) + "%";
+        document.getElementById("sfx-val-text").innerText = Math.round(currentVolumes.sfx * 100) + "%";
+    }
+
+    function closeSettings() {
+        document.getElementById("settings-overlay").style.display = "none";
+        playSound('click'); // 關閉時播個聲測試下音量
+    }
+
+    function updateVolume(type, val) {
+        const volumeFloat = val / 100;
+        
+        if (type === 'bgm') {
+            currentVolumes.bgm = volumeFloat;
+            if (sfx.bgm) sfx.bgm.volume = volumeFloat;
+            document.getElementById("bgm-val-text").innerText = val + "%";
+        } 
+        else if (type === 'sfx') {
+            currentVolumes.sfx = volumeFloat;
+            // 更新所有音效嘅音量
+            if (sfx.hit) sfx.hit.volume = volumeFloat;
+            if (sfx.bossHit) sfx.bossHit.volume = volumeFloat;
+            if (sfx.heal) sfx.heal.volume = volumeFloat;
+            if (sfx.click) sfx.click.volume = volumeFloat;
+            
+            document.getElementById("sfx-val-text").innerText = val + "%";
+        }
+    }
+
+    // ==========================================
+    // ⚙️ 難度與登出邏輯
+    // ==========================================
+    let currentDifficultyDivisor = 2.5; // 預設標準難度 (2.5)
+
+    function setDifficulty(level) {
+        // 重置所有按鈕樣式
+        document.getElementById('diff-easy').classList.remove('active');
+        document.getElementById('diff-normal').classList.remove('active');
+        document.getElementById('diff-hard').classList.remove('active');
+
+        // 點亮選擇嘅難度
+        document.getElementById(`diff-${level}`).classList.add('active');
+
+        // 設定數值 (數值越大，Boss 打你越唔痛)
+        if (level === 'easy') {
+            currentDifficultyDivisor = 3.8; // 簡單：Boss 傷害大幅降低
+        } else if (level === 'normal') {
+            currentDifficultyDivisor = 2.5; // 標準：原汁原味
+        } else if (level === 'hard') {
+            currentDifficultyDivisor = 1.6; // 困難：Boss 拳拳到肉，極易秒殺
+        }
+        
+        playSound('click');
+    }
+
+    function returnToMainMenu() {
+        playSound('click');
+        // 加入防呆警告，費事玩家唔小心撳錯
+        if (confirm("【警告】確定要登出系統回到主選單嗎？\n未儲存的進度將會遺失！(請確保已記錄復活用密碼)")) {
+            location.reload(); // 重新載入網頁，最乾淨俐落嘅回到主選單方法
+        }
+    }
+
+    // 💡 覆蓋原本播放音效的函數，加入點擊聲 (可選)
+    const originalPlaySound = playSound;
+    playSound = function(type) {
+        // 如果玩家將音效扭到 0%，就唔好播
+        if (currentVolumes.sfx === 0 && type !== 'bgm') return; 
+        originalPlaySound(type);
+    }
+
+    // 設定 BGM 無限 Loop 同埋較細聲啲，費事蓋過音效
+    sfx.bgm.loop = true;
+    sfx.bgm.volume = 0.3; 
+    sfx.hit.volume = 0.8;
+    sfx.bossHit.volume = 1.0;
+
+    // 播音效嘅專用 Function (防止連續攻擊時窒機)
+    function playSound(type) {
+        if(sfx[type]) {
+            sfx[type].currentTime = 0; // 每次由頭播，支援連打重疊
+            sfx[type].play().catch(e => console.log("音效未準備好:", e));
+        }
+    }
+
     // --- 核心系統與狀態管理 ---
     let state = {
         hp: 100,
@@ -375,23 +810,36 @@
     function useItem(item) {
         const index = state.inventory.indexOf(item);
         if (index > -1) {
-            // 定義「消耗品」關鍵字，呢啲用完必定消失
-            const consumables = ["炸彈", "燃燒瓶", "閃光彈", "啤酒", "醫療", "急救", "藥劑", "水丸", "蒸餾水", "能量棒", "肉"];
-            
+            const info = getItemInfo(item); // ✨ 直接讀取圖鑑系統嘅分類
             let willBreak = false;
-            // 如果道具名包含消耗品關鍵字，100% 消耗
-            if (consumables.some(c => item.includes(c))) {
-                willBreak = true;
+            
+            // 💡 核心修改：消耗品 (💊) 與 任務道具 (💾) 必定 100% 消耗/移出背包
+            if (info.type === "consumable" || info.type === "quest") {
+                willBreak = true; 
             } else {
-                // 武器/防具，有 30% 機會損壞
+                // ⚔️ 武器與防具 (每次使用有 15% 機率磨損損毀)
                 willBreak = Math.random() < 0.15; 
             }
 
             if (!willBreak) {
                 triggerButterfly(`使用了【${item}】。裝備耐用度未減，可繼續使用！`);
             } else {
-                state.inventory.splice(index, 1);
-                triggerButterfly(`使用了【${item}】。該物品已消耗 / 損毀。`, true);
+                state.inventory.splice(index, 1); // 從背包刪除物品
+                
+                // 如果件裝備爛咗，確保佢會自動從「裝備中」卸下
+                if (state.equipped) {
+                    if (state.equipped.weapon === item) state.equipped.weapon = null;
+                    if (state.equipped.armor === item) state.equipped.armor = null;
+                }
+                
+                // 根據物品類型彈出最順眼嘅提示
+                if (info.type === "quest") {
+                    triggerButterfly(`已交出 / 使用關鍵道具：【${item}】`);
+                } else if (info.type === "consumable") {
+                    // 消耗品喺其他地方已經有食藥提示，呢度唔出聲
+                } else {
+                    triggerButterfly(`使用了【${item}】。該裝備已嚴重損毀！`, true); // 紅字警告
+                }
             }
         }
         updateUI();
@@ -399,14 +847,44 @@
 
     function hasItem(item) { return state.inventory.includes(item); }
 
+    // ✨ 更新：由自動掃描改為讀取玩家手動選擇
+    function getEquippedStats() {
+        if (!state.equipped) state.equipped = { weapon: null, armor: null };
+
+        let wName = state.equipped.weapon;
+        let aName = state.equipped.armor;
+        let wAtk = 0;
+        let aDodge = 0;
+        
+        // 檢查武器係咪仲喺背包 (防損壞/消耗)
+        if (wName && state.inventory.includes(wName)) {
+            wAtk = getItemInfo(wName).atkBonus || 0;
+        } else {
+            wName = "拳頭";
+            state.equipped.weapon = null; // 物品丟失，自動卸下
+        }
+
+        // 檢查防具係咪仲喺背包
+        if (aName && state.inventory.includes(aName)) {
+            aDodge = getItemInfo(aName).dodgeBonus || 0;
+        } else {
+            aName = "校服";
+            state.equipped.armor = null; // 物品丟失，自動卸下
+        }
+
+        return { weaponName: wName, atkBonus: wAtk, armorName: aName, dodgeBonus: aDodge };
+    }
+
     function updateUI() {
         const teamDiv = document.getElementById("team-list");
-        teamDiv.innerHTML = "";
-        for (let key in state.team) {
-            const span = document.createElement("span");
-            span.className = `char-tag ${state.team[key] ? 'alive' : 'dead'}`;
-            span.innerText = charNames[key];
-            teamDiv.appendChild(span);
+        if (teamDiv) {
+            teamDiv.innerHTML = "";
+            for (let key in state.team) {
+                const span = document.createElement("span");
+                span.className = `char-tag ${state.team[key] ? 'alive' : 'dead'}`;
+                span.innerText = charNames[key];
+                teamDiv.appendChild(span);
+            }
         }
         
         document.getElementById("hp-fill").style.width = state.hp + "%";
@@ -417,109 +895,29 @@
         if(state.hp <= 30) document.getElementById("hp-fill").style.background = "#b71c1c";
         else document.getElementById("hp-fill").style.background = "var(--danger-color)";
 
-        // 👇【核心修改】將裝備變成可點擊嘅標籤
-        const invDiv = document.getElementById("inv-list");
-        invDiv.innerHTML = ""; // 清空
-        if (state.inventory.length === 0) {
-            invDiv.innerText = "無";
-        } else {
-            state.inventory.forEach(item => {
-                const itemSpan = document.createElement("span");
-                itemSpan.innerText = `[${item}] `;
-                itemSpan.style.cursor = "pointer";
-                itemSpan.style.transition = "0.2s";
-                
-                // 加入 Hover 效果
-                itemSpan.onmouseover = () => itemSpan.style.color = "#fff";
-                itemSpan.onmouseout = () => itemSpan.style.color = "var(--item-color)";
-                
-                // 點擊事件：如果係消耗品就隨時使用
-                itemSpan.onclick = () => {
-                    // 定義可以喺非戰鬥狀態點擊使用嘅補給品關鍵字
-                    const healKeywords = ["急救", "繃帶", "醫療", "凝膠", "藥劑", "啤酒", "水丸", "蒸餾水", "能量棒", "肉", "鎮定劑", "醫療針"];
+        // ✨ 實時更新戰術面板
+        const stats = getEquippedStats();
+        const baseAtk = 12; // 玩家基礎平均傷害
+        const baseDodge = 10; // 玩家基礎閃避率 10%
+        
+        const atkEl = document.getElementById("stat-atk");
+        const dodgeEl = document.getElementById("stat-dodge");
+        const eqWeaponEl = document.getElementById("equip-weapon");
+        const eqArmorEl = document.getElementById("equip-armor");
 
-                    if (healKeywords.some(keyword => item.includes(keyword))) {
-                        let healMsg = "";
-                        let isBadEffect = false; // 用嚟判定提示框係咪轉紅色警告
-
-                        // ==========================================
-                        // 👑 T0 級：頂級神藥 (名校 / APEX 專用)
-                        // ==========================================
-                        if (item.includes("終極狂暴藥劑")) {
-                            modifyStats('hp', 50); modifyStats('sp', 50);
-                            healMsg = "💉 啪咗狂暴藥，傷口瞬間癒合，成個人興奮到想打死隻牛！(HP+50, SP+50)";
-                        } 
-                        else if (item.includes("納米治癒凝膠")) {
-                            modifyStats('hp', 40);
-                            healMsg = "🧪 高科技凝膠覆蓋傷口，連疤痕都冇留低！(HP+40)";
-                        } 
-                        else if (item.includes("軍用精神鎮定劑")) {
-                            modifyStats('sp', 40);
-                            healMsg = "💊 打完鎮定劑，大腦前所未有咁清醒，恐懼感一掃而空！(SP+40)";
-                        }
-                        else if (item.includes("特效醫療針")) {
-                            modifyStats('hp', 30);
-                            healMsg = "💉 一針拮落大脾，痛楚全消！(HP+30)";
-                        }
-                        
-                        // ==========================================
-                        // 🍔 T1 級：優質糧水 (回血 + 回精神)
-                        // ==========================================
-                        else if (item.includes("圍村臘肉") || item.includes("能量棒")) {
-                            modifyStats('hp', 15); modifyStats('sp', 15);
-                            healMsg = `🍗 食咗【${item}】，個肚終於有啲嘢落格，舒服晒！(HP+15, SP+15)`;
-                        } 
-                        else if (item.includes("藍妹啤酒")) {
-                            modifyStats('hp', 10); modifyStats('sp', 25);
-                            healMsg = "🍺 大啖灌入啤酒，酒精麻醉咗神經，爽呀！(HP+10, SP+25)";
-                        } 
-                        else if (item.includes("學校急救箱")) {
-                            modifyStats('hp', 25);
-                            healMsg = "🩹 用標準急救用品妥善包紮咗傷口。(HP+25)";
-                        } 
-                        else if (item.includes("醫療噴霧")) {
-                            modifyStats('hp', 20);
-                            healMsg = "💨 噴上冰涼嘅醫療泡沫，成功止血。(HP+20)";
-                        } 
-                        else if (item.includes("蒸餾水") || item.includes("淨水丸")) {
-                            modifyStats('hp', 5); modifyStats('sp', 15);
-                            healMsg = "💧 飲咗乾淨嘅水，喉嚨終於唔再火燒咁痛。(HP+5, SP+15)";
-                        }
-                        
-                        // ==========================================
-                        // ⚠️ T2 級：污糟 / 有副作用嘅劣質補給 (回血但扣精神)
-                        // ==========================================
-                        else if (item.includes("污糟") || item.includes("髒污") || item.includes("染血")) {
-                            modifyStats('hp', 15); modifyStats('sp', -5);
-                            isBadEffect = true;
-                            healMsg = `🩸 用咗【${item}】勉強止血，但陣除太嘔心，精神受挫... (HP+15, SP-5)`;
-                        } 
-                        else if (item.includes("生野豬肉")) {
-                            modifyStats('hp', 10); modifyStats('sp', -10);
-                            isBadEffect = true;
-                            healMsg = "🥩 生吞帶血嘅野豬肉，胃部一陣翻騰，好想嘔... (HP+10, SP-10)";
-                        } 
-                        
-                        // ==========================================
-                        // 預設保底
-                        // ==========================================
-                        else {
-                            modifyStats('hp', 10);
-                            healMsg = `使用了【${item}】，稍微恢復了體力。(HP+10)`;
-                        }
-
-                        // 消耗道具
-                        useItem(item); 
-                        // 觸發對應嘅提示框 (如果係核突嘢就用紅色警告色)
-                        triggerButterfly(healMsg, isBadEffect); 
-                        
-                    } else {
-                        // 玩家點擊武器或劇情道具時的嘲諷提示
-                        triggerButterfly(`【${item}】係武器、裝備或者劇情道具，無得啪落肚㗎！`, true);
-                    }
-                };
-                invDiv.appendChild(itemSpan);
-            });
+        if (atkEl && dodgeEl && eqWeaponEl && eqArmorEl) {
+            let totalAtk = baseAtk + stats.atkBonus;
+            let totalDodge = baseDodge + (stats.dodgeBonus * 100);
+            
+            // 顯示格式： 總和 (+裝備加成)
+            atkEl.innerText = `${totalAtk} ` + (stats.atkBonus > 0 ? `(+${stats.atkBonus})` : "");
+            atkEl.style.color = stats.atkBonus > 0 ? "var(--item-color)" : "#fff"; // 有神裝變金字
+            
+            dodgeEl.innerText = `${totalDodge}% ` + (stats.dodgeBonus > 0 ? `(+${stats.dodgeBonus * 100}%)` : "");
+            dodgeEl.style.color = stats.dodgeBonus > 0 ? "var(--apex-blue)" : "#fff";
+            
+            eqWeaponEl.innerText = stats.weaponName;
+            eqArmorEl.innerText = stats.armorName;
         }
     }
 
@@ -530,7 +928,16 @@
         const btn = document.getElementById("dice-btn");
         
         let bonus = 2;
-        if (stat === "智力" && state.team.szeto) bonus += 2;
+        if (stat === "智力") {
+            let extraTime = 0;
+            if (state.team.szeto) extraTime += 4; // 司徒在生，多 4 秒！
+            if (hasItem("低級駭客晶片") || hasItem("中央區防火牆通行證")) extraTime += 3; // 神裝多 3 秒！
+            if (hasItem("舊時代的作弊小抄") || hasItem("褪色的網吧會員卡")) extraTime += 2; 
+            
+            triggerButterfly(`[啟動 ICE 破解] 系統給予 ${10 + extraTime} 秒操作時間...`);
+            startHackingGame(successId, failId, extraTime);
+            return; // 攔截完直接退出函數，唔好彈骰仔
+        }
         if (stat === "戰鬥" && state.team.chicken) bonus += 2;
         if (stat === "敏捷" && state.team.tin) bonus += 2;
 
@@ -578,6 +985,121 @@
                 btn.style.display = "block";
             }
         }, 50);
+    }
+
+    // ==========================================
+    // 💻 ICE 駭客破冰系統 (Hacking Minigame)
+    // ==========================================
+    let iceTimer;
+    let iceSequence = [];
+    let iceCurrentIndex = 0;
+    let iceSuccessId = "";
+    let iceFailId = "";
+    let iceTimeLeft = 0;
+    let iceTotalTime = 0;
+
+    function startHackingGame(successId, failId, extraTime = 0) {
+        document.getElementById("ice-overlay").style.display = "flex";
+        iceSuccessId = successId;
+        iceFailId = failId;
+        iceSequence = [];
+        iceCurrentIndex = 0;
+
+        // 1. 生成 3 組隨機 HEX 代碼作為目標
+        const hexChars = "0123456789ABCDEF";
+        while(iceSequence.length < 3) {
+            let code = hexChars[Math.floor(Math.random()*16)] + hexChars[Math.floor(Math.random()*16)];
+            if (!iceSequence.includes(code)) iceSequence.push(code);
+        }
+
+        // 2. 顯示目標
+        const targetDiv = document.getElementById("ice-target");
+        targetDiv.innerHTML = "";
+        iceSequence.forEach(code => {
+            let span = document.createElement("span");
+            span.innerText = code;
+            targetDiv.appendChild(span);
+        });
+
+        // 3. 生成 4x4 矩陣 (包含 3 個目標 + 13 個干擾碼)
+        let gridItems = [...iceSequence];
+        while(gridItems.length < 16) {
+            let randomCode = hexChars[Math.floor(Math.random()*16)] + hexChars[Math.floor(Math.random()*16)];
+            if(!gridItems.includes(randomCode)) gridItems.push(randomCode);
+        }
+        gridItems.sort(() => Math.random() - 0.5); // 打亂順序
+
+        const gridDiv = document.getElementById("ice-grid");
+        gridDiv.innerHTML = "";
+        gridItems.forEach(code => {
+            let btn = document.createElement("button");
+            btn.className = "ice-btn";
+            btn.innerText = code;
+            btn.onclick = () => handleIceClick(code, btn);
+            gridDiv.appendChild(btn);
+        });
+
+        // 4. 設定時間與倒數 (基本 10 秒 + 技能/裝備加成)
+        iceTotalTime = 10 + extraTime;
+        iceTimeLeft = iceTotalTime;
+        const timerBar = document.getElementById("ice-timer-bar");
+        timerBar.style.width = "100%";
+        timerBar.style.background = "var(--success-color)";
+        
+        clearInterval(iceTimer);
+        iceTimer = setInterval(() => {
+            iceTimeLeft -= 0.1;
+            let percent = (iceTimeLeft / iceTotalTime) * 100;
+            timerBar.style.width = Math.max(0, percent) + "%";
+            
+            // 剩低 3 秒變紅色警告
+            if(iceTimeLeft <= 3) timerBar.style.background = "var(--danger-color)";
+
+            if (iceTimeLeft <= 0) {
+                clearInterval(iceTimer);
+                endHacking(false);
+            }
+        }, 100);
+    }
+
+    function handleIceClick(code, btn) {
+        if (code === iceSequence[iceCurrentIndex]) {
+            // ✅ 撳啱咗！
+            btn.style.background = "var(--success-color)";
+            btn.style.color = "#000";
+            btn.disabled = true;
+            
+            // 將上方目標文字劃線
+            let targetSpan = document.getElementById("ice-target").children[iceCurrentIndex];
+            targetSpan.style.textDecoration = "line-through";
+            targetSpan.style.opacity = "0.3";
+            
+            iceCurrentIndex++;
+            playSound('click'); 
+            
+            // 全部過關
+            if (iceCurrentIndex >= iceSequence.length) {
+                clearInterval(iceTimer);
+                setTimeout(() => endHacking(true), 400);
+            }
+        } else {
+            // ❌ 撳錯咗！扣 2 秒時間作為懲罰！
+            btn.classList.add("ice-shake");
+            iceTimeLeft -= 2.0; 
+            playSound('hit');
+            setTimeout(() => { btn.classList.remove("ice-shake"); }, 200);
+        }
+    }
+
+    function endHacking(isSuccess) {
+        document.getElementById("ice-overlay").style.display = "none";
+        if (isSuccess) {
+            triggerButterfly("🔓 破冰成功！防火牆已瓦解！");
+            renderEvent(iceSuccessId);
+        } else {
+            triggerButterfly("💥 破冰失敗！連接被強制中斷！", true);
+            renderEvent(iceFailId);
+        }
     }
 
     // --- 視覺化戰鬥系統 ---
@@ -676,29 +1198,209 @@
         }
     }
 
+    // ==========================================
+    // 🎒 神經元背包與圖鑑系統
+    // ==========================================
+    let currentInvCategory = 'weapon';
+    let selectedItemName = null;
+
+    const ITEM_DB = {
+        // --- 武器 (帶 atkBonus) ---
+        "殘破等離子斬馬刀": { type: "weapon", icon: "🏮", desc: "廢城軍閥的霸主象徵。恐怖的高溫殺傷力。", stats: "攻擊力 +15", atkBonus: 15 },
+        "血腥雙刀": { type: "weapon", icon: "⚔️", desc: "高雷大紅棍的遺物。令人狂躁嗜血。", stats: "攻擊力 +14", atkBonus: 14 },
+        "開山大砍刀": { type: "weapon", icon: "🔪", desc: "黑幫氣息的重型武器，劈斬威力驚人。", stats: "攻擊力 +12", atkBonus: 12 },
+        "強化高頻電磁刀": { type: "weapon", icon: "🗡️", desc: "前人遺留的神兵，刀刃散發高壓電流。", stats: "攻擊力 +12", atkBonus: 12 },
+        "高碳鋼狗腿刀": { type: "weapon", icon: "🪓", desc: "精英童軍長的專屬武器，專為叢林戰打造。", stats: "攻擊力 +12", atkBonus: 12 },
+        "高壓電熱戰斧": { type: "weapon", icon: "🪓", desc: "先鋒將軍的重型武器，帶有高壓電。", stats: "攻擊力 +11", atkBonus: 11 },
+        "劣質關刀": { type: "weapon", icon: "🪓", desc: "慈航黑虎堂大佬的武器，笨重但霸氣十足。", stats: "攻擊力 +9", atkBonus: 9 },
+        "生鏽鐵絲水喉通": { type: "weapon", icon: "🏏", desc: "古惑仔必備的街頭神兵，打人極痛。", stats: "攻擊力 +8", atkBonus: 8 },
+        "鐵摺凳": { type: "weapon", icon: "🪑", desc: "七大武器之首！隱藏著無窮殺機。", stats: "攻擊力 +8", atkBonus: 8 },
+        "高壓電擊警棍": { type: "weapon", icon: "🦯", desc: "名校風紀隊的執法武器。", stats: "攻擊力 +7", atkBonus: 7 },
+        "生鏽行山杖": { type: "weapon", icon: "🦯", desc: "大帽山管理站執到的裝備，扑頭一流。", stats: "攻擊力 +6", atkBonus: 6 },
+        "血腥玻璃匕首": { type: "weapon", icon: "🩸", desc: "用大塊玻璃碎綁成的凶器。", stats: "攻擊力 +5", atkBonus: 5 },
+        "新手短刀": { type: "weapon", icon: "🪛", desc: "大混戰中搶來的保命符。", stats: "攻擊力 +4", atkBonus: 4 },
+        "尖銳石塊": { type: "weapon", icon: "🪨", desc: "最原始的武器。", stats: "攻擊力 +3", atkBonus: 3 },
+        "金屬圓規": { type: "weapon", icon: " compass", desc: "考場文具，生死關頭的凶器。", stats: "攻擊力 +3", atkBonus: 3 },
+        
+        // --- 防具 (帶 dodgeBonus) ---
+        "終極戰術裝甲": { type: "armor", icon: "🦾", desc: "APEX 終極防護，全身覆蓋防彈裝甲板。", stats: "迴避率 +25%", dodgeBonus: 0.25 },
+        "透明防暴盾": { type: "armor", icon: "🛡️", desc: "警用級別防具，能有效抵擋子彈。", stats: "迴避率 +20%", dodgeBonus: 0.20 },
+        "輕型防彈校服": { type: "armor", icon: "🦺", desc: "名校糾察隊裝備，內藏防彈纖維。", stats: "迴避率 +15%", dodgeBonus: 0.15 },
+        "厚重字典": { type: "armor", icon: "📖", desc: "足以擋下小口徑子彈的字典。", stats: "迴避率 +10%", dodgeBonus: 0.10 },
+        "廢車鐵皮": { type: "armor", icon: "🚙", desc: "勉強可以擋住亂飛的雜物。", stats: "迴避率 +10%", dodgeBonus: 0.10 },
+        "防風巡邏風褸": { type: "armor", icon: "🧥", desc: "救命保暖衣物，略微提升防禦。", stats: "迴避率 +5%", dodgeBonus: 0.05 },
+        
+        // --- 補給與任務 ---
+        "納米治癒凝膠": { type: "consumable", icon: "💊", desc: "瀕死(HP<30)自動觸發保命。", stats: "HP 恢復 35" },
+        "學校急救箱": { type: "consumable", icon: "🚑", desc: "瀕死(HP<25)自動觸發保命。", stats: "HP 恢復 25" },
+        "終極狂暴藥劑": { type: "consumable", icon: "🧪", desc: "瞬間治癒致命傷並激發潛能。", stats: "HP +40 / SP +20" },
+        "半打藍妹啤酒": { type: "consumable", icon: "🍺", desc: "麻醉痛楚，壯膽一流。", stats: "HP +10 / SP +15" },
+        "圍村臘肉": { type: "consumable", icon: "🥩", desc: "極高熱量的野外求生神器。", stats: "HP +20 / SP +20" },
+        "中央區防火牆通行證": { type: "quest", icon: "🔑", desc: "擁有進入要塞的最高權限。", stats: "核心劇情道具" },
+        "高階權限匙卡": { type: "quest", icon: "💳", desc: "可用於解鎖終極防爆門。", stats: "核心劇情道具" }
+    };
+
+    function getItemInfo(name) {
+        if (ITEM_DB[name]) return ITEM_DB[name];
+        let info = { type: "quest", icon: "💾", desc: "不明的數據或任務道具。", stats: "未知" }; 
+        if (name.match(/刀|劍|槍|斧|棍|通|杖|弓|箭|匕首|武器|火水|炸彈|燃燒瓶|圓規|摺凳/)) {
+            info.type = "weapon"; info.icon = "⚔️"; info.desc = "具有殺傷力的武器。"; info.stats = "攻擊力 +4"; info.atkBonus = 4;
+        } else if (name.match(/盾|甲|衣|褸/)) {
+            info.type = "armor"; info.icon = "🛡️"; info.desc = "提供保護的防具裝備。"; info.stats = "迴避率 +5%"; info.dodgeBonus = 0.05;
+        } else if (name.match(/藥|水|肉|糧|麵包|啤酒|急救|繃帶|能量棒/)) {
+            info.type = "consumable"; info.icon = "🍖"; info.desc = "可消耗的生存物資。"; info.stats = "狀態恢復";
+        }
+        return info;
+    }
+
+    function openInventory() {
+        document.getElementById("inventory-overlay").style.display = "flex";
+        switchInvTab('weapon');
+    }
+
+    function switchInvTab(category) {
+        currentInvCategory = category;
+        selectedItemName = null;
+        document.querySelectorAll('.inv-tab').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById("detail-name").innerText = "選擇物品...";
+        document.getElementById("detail-desc").innerText = "";
+        document.getElementById("detail-stats").style.display = "none";
+        document.getElementById("detail-use-btn").style.display = "none";
+        renderInventoryGrid();
+    }
+
+    function renderInventoryGrid() {
+        const grid = document.getElementById("inv-grid");
+        grid.innerHTML = "";
+        let hasItems = false;
+        state.inventory.forEach(itemName => {
+            const info = getItemInfo(itemName);
+            if (info.type === currentInvCategory) {
+                hasItems = true;
+                const div = document.createElement("div");
+                div.className = `inv-item ${selectedItemName === itemName ? 'selected' : ''}`;
+                div.onclick = () => selectItem(itemName, info);
+                // ✨ 新增：顯示裝備中狀態
+                let equipTag = "";
+                if (state.equipped && (state.equipped.weapon === itemName || state.equipped.armor === itemName)) {
+                    equipTag = `<div style="font-size: 0.7em; color: #ffeb3b; margin-top: 5px; font-weight: bold;">[裝備中]</div>`;
+                }
+                
+                div.innerHTML = `<div class="inv-item-icon">${info.icon}</div><div class="inv-item-name">${itemName}</div>${equipTag}`;
+                grid.appendChild(div);
+            }
+        });
+        if (!hasItems) grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #555; padding-top: 40px;">（空空如也）</div>`;
+    }
+
+    function selectItem(itemName, info) {
+        selectedItemName = itemName;
+        renderInventoryGrid();
+        
+        document.getElementById("detail-name").innerText = itemName;
+        document.getElementById("detail-desc").innerText = info.desc;
+        
+        const statsEl = document.getElementById("detail-stats");
+        if (info.stats) {
+            statsEl.innerText = info.stats;
+            statsEl.style.display = "inline-block";
+        } else {
+            statsEl.style.display = "none";
+        }
+        
+        const useBtn = document.getElementById("detail-use-btn");
+        if (!state.equipped) state.equipped = { weapon: null, armor: null }; // 舊存檔防呆
+        
+        if (info.type === "consumable") {
+            useBtn.innerText = "使用物品";
+            useBtn.onclick = useItemFromInv;
+            useBtn.style.display = "inline-block";
+            useBtn.style.color = "var(--success-color)";
+            useBtn.style.borderColor = "var(--success-color)";
+        } else if (info.type === "weapon" || info.type === "armor") {
+            const isEquipped = state.equipped[info.type] === itemName;
+            useBtn.innerText = isEquipped ? "卸下裝備" : "裝備";
+            useBtn.onclick = () => toggleEquip(itemName, info.type);
+            useBtn.style.display = "inline-block";
+            useBtn.style.color = isEquipped ? "#ffeb3b" : "var(--apex-blue)";
+            useBtn.style.borderColor = isEquipped ? "#ffeb3b" : "var(--apex-blue)";
+        } else {
+            useBtn.style.display = "none";
+        }
+    }
+
+    // ✨ 新增：手動切換裝備
+    function toggleEquip(itemName, type) {
+        if (!state.equipped) state.equipped = { weapon: null, armor: null };
+
+        if (state.equipped[type] === itemName) {
+            state.equipped[type] = null; // 卸下
+            triggerButterfly(`已卸下：${itemName}`);
+        } else {
+            state.equipped[type] = itemName; // 裝備 (自動替換舊裝備)
+            triggerButterfly(`已裝備：${itemName}`);
+        }
+        
+        updateUI(); // 實時更新頂部戰術面板
+        selectItem(itemName, getItemInfo(itemName)); // 刷新按鈕文字
+    }
+
+    function useItemFromInv() {
+        if (!selectedItemName) return;
+        let item = selectedItemName;
+        
+        let healMsg = "";
+        let isBadEffect = false;
+
+        // 1. 判斷食咗咩，加返對應嘅數值
+        if (item.includes("終極狂暴藥劑")) { modifyStats('hp', 40); modifyStats('sp', 20); healMsg = "💉 啪咗狂暴藥，傷口瞬間癒合，戰意沸騰！(HP+40, SP+20)"; }
+        else if (item.includes("凝膠")) { modifyStats('hp', 35); healMsg = "🧪 冰涼凝膠瞬間止血癒合！(HP+35)"; }
+        else if (item.includes("急救")) { modifyStats('hp', 25); healMsg = "🚑 妥善包紮了傷口，執返條命。(HP+25)"; }
+        else if (item.includes("鎮定劑")) { modifyStats('sp', 25); healMsg = "💊 恐懼感一掃而空，大腦極度清醒！(SP+25)"; }
+        else if (item.includes("醫療針") || item.includes("醫療噴霧")) { modifyStats('hp', 20); healMsg = "💉 醫療用品發揮作用，痛楚大減！(HP+20)"; }
+        else if (item.includes("肉") || item.includes("能量棒")) { modifyStats('hp', 20); modifyStats('sp', 20); healMsg = `🍗 食咗【${item}】，補充大量體力！(HP+20, SP+20)`; }
+        else if (item.includes("啤酒")) { modifyStats('hp', 10); modifyStats('sp', 15); healMsg = "🍺 大啖灌入啤酒，酒精麻醉神經，壯膽一流！(HP+10, SP+15)"; }
+        else if (item.includes("水") || item.includes("淨水丸")) { modifyStats('hp', 5); modifyStats('sp', 10); healMsg = "💧 飲水解渴，喉嚨終於唔再火燒咁痛。(HP+5, SP+10)"; }
+        else if (item.includes("污糟") || item.includes("髒污") || item.includes("染血")) { modifyStats('hp', 15); modifyStats('sp', -5); isBadEffect = true; healMsg = `🩸 用咗【${item}】勉強止血，但陣除太嘔心... (HP+15, SP-5)`; }
+        else { healMsg = `使用了【${item}】。`; }
+
+        // 2. 必定消耗物品 (100% 扣除)
+        const index = state.inventory.indexOf(item);
+        if (index > -1) {
+            state.inventory.splice(index, 1);
+        }
+
+        // 3. 更新 UI 與提示
+        document.getElementById("inventory-overlay").style.display = "none";
+        updateUI();
+        if (healMsg) triggerButterfly(healMsg, isBadEffect);
+    }
+
     function autoCombatRound() {
         if (!combatState.active) return;
         combatState.playerMp = Math.min(100, combatState.playerMp + combatState.mpRegen);
         combatState.bossMp = Math.min(100, combatState.bossMp + combatState.bossMpRegen);
         updateCombatUI();
 
+        // 🎒 讀取玩家手動裝備 (不再自動掃描背包)
+        const eqStats = getEquippedStats();
+        let bestWeaponAtk = eqStats.atkBonus;
+        let bestWeaponName = eqStats.weaponName;
+        let bestArmorDodge = eqStats.dodgeBonus;
+        let bestArmorName = eqStats.armorName;
+
         // --- 🧑‍💻 玩家行動 ---
-        let pBase = Math.floor(Math.random() * 10) + 15; // 提高玩家基礎傷害到 15-25
-        if (safeCheckItem("開山大砍刀") || safeCheckItem("強化高頻電磁刀") || safeCheckItem("高碳鋼狗腿刀") || safeCheckItem("殘破等離子斬馬刀")) pBase += 12;
-        
+        let pBase = Math.floor(Math.random() * 8) + 12 + bestWeaponAtk; 
         let pSkill = null;
         const affordable = P_MP_SKILLS.filter(s => combatState.playerMp >= s.cost);
         if (affordable.length > 0 && (combatState.playerMp >= 60 || Math.random() > 0.5)) {
             pSkill = { ...affordable[0], type: 'MP' };
             combatState.playerMp -= pSkill.cost;
         } else {
-            let roll = Math.random();
-            let cur = 0;
+            let roll = Math.random(); let cur = 0;
             for (let s of P_PROC_SKILLS) { cur += s.chance; if (roll < cur) { pSkill = { ...s, type: 'PROC' }; break; } }
-            if (!pSkill) {
-                pSkill = { name: "普通攻擊", dmgMult: 1.0, color: "#ccc", msg: "", type: 'NORMAL' };
-                combatState.playerMp = Math.min(100, combatState.playerMp + 8);
-            }
+            if (!pSkill) { pSkill = { name: "普通攻擊", dmgMult: 1.0, color: "#ccc", msg: "", type: 'NORMAL' }; combatState.playerMp = Math.min(100, combatState.playerMp + 8); }
         }
 
         if (Math.random() < 0.1) logCombat(`💨 ${combatState.bossName} 閃避了你的攻擊！`, "var(--apex-blue)");
@@ -706,10 +1408,9 @@
             let dmg = Math.floor(pBase * pSkill.dmgMult);
             combatState.bossHp = Math.max(0, combatState.bossHp - dmg);
             if (pSkill.msg) logCombat(pSkill.msg, pSkill.color);
-            logCombat(`[你] 使用 ${pSkill.name}，造成 **${dmg}** 傷害！`, pSkill.color);
+            let wText = bestWeaponAtk > 0 ? ` (裝備: ${bestWeaponName})` : "";
+            logCombat(`[你] 使用 ${pSkill.name}${wText}，造成 **${dmg}** 傷害！`, pSkill.color);
             triggerHitEffect('boss', pSkill.cost >= 60);
-            document.getElementById("player-fighter").style.transform = "translateX(25px)";
-            setTimeout(() => document.getElementById("player-fighter").style.transform = "translateX(0)", 150);
         }
         updateCombatUI();
         if (combatState.bossHp <= 0) { checkCombatStatus(); return; }
@@ -717,30 +1418,32 @@
         // --- 👹 Boss 行動 ---
         setTimeout(() => {
             if (!combatState.active) return;
-            let bBase = Math.floor((Math.random() * 10 + combatState.bossAttack) / 2.5); // 再削弱 Boss 傷害
+            // 讀取玩家設定嘅難度除數 (currentDifficultyDivisor)
+            let bBase = Math.floor((Math.random() * 10 + combatState.bossAttack) / currentDifficultyDivisor);
             const data = BOSS_DATA[combatState.bossName] || BOSS_DATA["DEFAULT"];
             let bSkill = null;
             const bAfford = data.mp.filter(s => combatState.bossMp >= s.cost);
             if (bAfford.length > 0 && (combatState.bossMp >= 70 || Math.random() > 0.6)) {
-                bSkill = { ...bAfford[0], type: 'MP' };
-                combatState.bossMp -= bSkill.cost;
+                bSkill = { ...bAfford[0], type: 'MP' }; combatState.bossMp -= bSkill.cost;
             } else {
-                let roll = Math.random();
-                let cur = 0;
+                let roll = Math.random(); let cur = 0;
                 for (let s of data.proc) { cur += s.chance; if (roll < cur) { bSkill = { ...s, type: 'PROC' }; break; } }
                 if (!bSkill) bSkill = { name: "普通攻擊", dmgMult: 1.0, color: "#ccc", msg: "", type: 'NORMAL' };
             }
 
-            if (Math.random() < (safeCheckItem("透明防暴盾") ? 0.35 : 0.15)) logCombat(`💨 你極限翻滾，閃避了 Boss 的打擊！`, "var(--apex-blue)");
-            else {
+            let totalDodge = 0.10 + bestArmorDodge;
+            if (Math.random() < totalDodge) {
+                let aText = bestArmorDodge > 0 ? `靠著 [${bestArmorName}] ` : "";
+                logCombat(`💨 你${aText}極限翻滾，閃避了 Boss 的打擊！`, "var(--apex-blue)");
+            } else {
                 let dmg = Math.floor(bBase * (bSkill.mult || 1.0));
                 state.hp = Math.max(0, state.hp - dmg);
                 if (bSkill.msg) logCombat(bSkill.msg, bSkill.color || "#ff8a80");
                 logCombat(`[${combatState.bossName}] 使用 ${bSkill.name}，造成 **${dmg}** 傷害。`, "#ff8a80");
                 triggerHitEffect('player', bSkill.cost >= 70);
-                document.getElementById("boss-fighter").style.transform = "translateX(-25px)";
-                setTimeout(() => document.getElementById("boss-fighter").style.transform = "translateX(0)", 150);
-                if (state.hp <= 30 && safeCheckItem("納米治癒凝膠")) { state.hp += 35; safeConsumeItem("納米治癒凝膠"); logCombat(`💊 [系統] 自動使用凝膠，HP+35！`, "var(--item-color)"); }
+                
+                if (state.hp <= 30 && safeCheckItem("納米治癒凝膠")) { state.hp += 35; safeConsumeItem("納米治癒凝膠"); logCombat(`💊 [保命] 自動使用凝膠，HP+35！`, "var(--item-color)"); }
+                else if (state.hp <= 25 && safeCheckItem("學校急救箱")) { state.hp += 25; safeConsumeItem("學校急救箱"); logCombat(`💊 [保命] 自動使用急救箱，HP+25！`, "var(--item-color)"); }
             }
             updateCombatUI();
             if (state.hp <= 0) checkCombatStatus();
@@ -792,6 +1495,10 @@
         if (saved) {
             state = JSON.parse(saved);
             document.getElementById("start-screen").style.display = "none";
+            document.getElementById("main-game").style.display = "flex";
+            sfx.bgm.play().catch(e => {}); // ✨ 讀檔成功播 BGM
+            renderEvent(cp.event);
+
             document.getElementById("main-game").style.display = "flex";
             triggerButterfly("【系統】已成功讀取最近自動存檔！");
             renderEvent(state.currentEventId);
@@ -852,14 +1559,17 @@ const checkpoints = {
             alert(cp.msg);
             document.getElementById("start-screen").style.display = "none";
             document.getElementById("main-game").style.display = "flex";
+            sfx.bgm.play().catch(e => {}); // ✨ 讀檔成功播 BGM
             renderEvent(cp.event);
         } else if (legacy[code]) {
             state.inventory.push(legacy[code].item);
             state.flags.legacyBonus = true;
             alert(`${legacy[code].msg}\n\n獲得初始隱藏道具：【${legacy[code].item}】`);
+            sfx.bgm.play().catch(e => {}); // ✨ 繼承道具成功播 BGM
             startGame();
         } else {
             alert("[系統錯誤] 找不到對應的記憶體，或密碼錯誤。即將以初始白板狀態載入...");
+            sfx.bgm.play().catch(e => {}); // ✨ 錯誤照播 BGM
             startGame();
         }
     }
@@ -880,6 +1590,7 @@ const checkpoints = {
     function startGame() {
         document.getElementById("start-screen").style.display = "none";
         document.getElementById("main-game").style.display = "flex";
+        sfx.bgm.play().catch(e => {}); // ✨ 開 Game 即刻播 BGM
         renderEvent("E1");
     }
 
@@ -1096,7 +1807,8 @@ const checkpoints = {
             text: `「擋我者死啊！」競技場已經變成修羅場。到處都是哭喊聲、骨折聲。<br><br>
             你們在人潮中艱難地向外擠，突然，人群一陣劇烈推擠，<span class='npc-text'>Oscar</span> 和 <span class='npc-text'>Hoto</span> 被硬生生沖散了！他們被擠向了高雷中學那群正在發狂打人的爛仔堆裡！`,
             choices: [
-                { text: "「救人呀！」毫不猶豫地逆著人流衝回去救兄弟", isRoll: true, stat: "戰鬥", target: 14, success: "E16", fail: "E15_FAIL" },
+                // 降低難度至 12
+                { text: "「救人呀！」毫不猶豫地逆著人流衝回去救兄弟", isRoll: true, stat: "戰鬥", target: 12, success: "E16", fail: "E15_FAIL" },
                 { text: "「過去實一齊死！」咬牙放棄他們，帶著剩下的兄弟先逃", onChoose: () => { killTeammate('oscar'); killTeammate('hoto'); modifyStats('sp', -20); }, next: "E17" }
             ]
         },
@@ -1106,11 +1818,14 @@ const checkpoints = {
             choices: [{ text: "架著受傷的兄弟，繼續向出口突圍", next: "E17" }]
         },
         "E15_FAIL": {
-            title: "無力的救援",
-            text: `你試圖衝回去，但人流的力量太大了，你不但沒救到人，反而被踩了好幾腳。Oscar 和 Hoto 絕望的呼救聲很快被淹沒在人海中，你再也看不到他們的身影了。`,
-            onEnter: () => { killTeammate('oscar'); killTeammate('hoto'); modifyStats('hp', -15); modifyStats('sp', -20); },
-            choices: [{ text: "帶著滿腔的悲憤和自責，往出口逃去", next: "E17" }]
+            title: "慘烈的救援",
+            text: `你試圖衝回去，但人流的力量太過恐怖！你同其他兄弟幾乎被踩死，身上多咗無數腳印同被踩斷肋骨嘅劇痛。<br><br>
+            但憑住唔要命嘅狠勁，你哋終於喺人堆底死死扯返 Oscar 同 Hoto 出嚟！雖然全隊人都受咗重傷，但總算六虎齊齊整整保住咗條命。`,
+            // 移除了 killTeammate，改為扣減大量狀態值作為代價
+            onEnter: () => { modifyStats('hp', -25); modifyStats('sp', -10); },
+            choices: [{ text: "「一個都不能少...」拖住傷軀往出口逃去", next: "E17" }]
         },
+
         "E17": {
             title: "First Blood (首殺)",
             text: `就在快要抵達出口時，一個極度驚恐的學生揮舞著從補給箱搶來的美工刀，胡亂揮舞。刀鋒不偏不倚地劃過了他身旁另一個學生的頸動脈。<br><br>
@@ -2622,17 +3337,16 @@ const checkpoints = {
             title: "路線確認：Scrap Zone",
             text: "你選擇了路線 B。前方是充滿鐵鏽、廢車和塗鴉的九龍廢墟。這裡的法則只有一個：誰的拳頭硬，誰就能活下去。",
             choices: [
-                { text: "「兄弟們，準備大開殺戒！」載入 B1", next: "B1" },
-                { text: "深呼吸，踏入廢城。載入 B1", next: "B1" },
-                { text: "檢查武器，載入 B1", next: "B1" }
+                { text: "「兄弟們，準備大開殺戒！」", next: "B1" },
+                { text: "深呼吸，踏入廢城。", next: "B1" },
             ]
         },
 
         "B1": {
             title: "Scrap Zone：鐵鏽與鮮血",
             text: `你哋一行人踩入『Scrap Zone』。天空落緊微黃色嘅虛擬酸雨，四周全部都係生滿鏽嘅鐵皮屋、疊到成座山咁高嘅廢棄車輛，仲有周圍亂畫嘅黑幫塗鴉。<br><br>
-            <span class='npc-text'>司徒</span> 掩住個鼻：「呢度個環境設定到好似八十年代嘅九龍EK咁，連陣坑渠味都模擬埋出嚟，APEX 班友真係變態。」<br>
-            <span class='npc-text'>天哥</span> 抽起支鐵通，扭一扭條頸發出『啪啪』聲：「EK？啱晒我哋啦！喺港島區同班名校仔玩食腦我反而唔慣，呢度講拳頭，我哋嘉道理未驚過！」`,
+            <span class='npc-text'>司徒</span> 掩住個鼻：「呢度個環境設定到好似八十年代嘅九龍城寨咁，連陣坑渠味都模擬埋出嚟，APEX 班友真係變態。」<br>
+            <span class='npc-text'>天哥</span> 抽起支鐵通，扭一扭條頸發出『啪啪』聲：「城寨？啱晒我哋啦！喺港島區同班名校仔玩食腦我反而唔慣，呢度講拳頭，我哋嘉道理未驚過！」`,
             choices: [
                 { text: "「無錯！見一個劈一個！」大搖大擺行出大路。", onEnter: () => modifyStats('sp', 10), next: "B2" },
                 { text: "「小心啲，呢度隨時有伏。」沿住廢車堆嘅陰影潛行。", isRoll: true, stat: "敏捷", target: 13, success: "B3", fail: "B4" },
@@ -4020,9 +4734,8 @@ const checkpoints = {
             title: "路線確認：大帽山叢林",
             text: "你選擇了路線 C。前方是未經開發、充滿野獸與極端天氣的新界原始叢林。在這裡，最大的敵人除了其他考生，還有大自然與飢餓。",
             choices: [
-                { text: "「兄弟們，準備做野人！」載入 C1", next: "C1" },
-                { text: "深呼吸，踏入叢林。載入 C1", next: "C1" },
-                { text: "檢查身上僅有物資，載入 C1", next: "C1" }
+                { text: "「兄弟們，準備做野人！」", next: "C1" },
+                { text: "深呼吸，踏入叢林。", next: "C1" },
             ]
         },
         "C1": {
@@ -6140,6 +6853,8 @@ const checkpoints = {
 
         state.currentEventId = id;
         saveGame(id);
+        
+        syncMapPosition(id); // ✨ 新增：每次轉劇情，雷達同步更新！
         
         if (ev.onEnter) ev.onEnter();
         updateUI();
