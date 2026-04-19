@@ -618,6 +618,26 @@ function syncMapPosition(eventId) {
                 cpContainer.appendChild(cpNode);
             });
         }
+
+    // ✨ 名校情報專屬：顯示隱藏威脅點 (只在 A 線有效)
+    if (currentPath === "A" && hasItem("名校聯盟戰略情報")) {
+        const secretPoints = [
+            { id: "A54", name: "BOSS", top: 85, left: 85 },
+            { id: "A28", name: "TRAP", top: 65, left: 65 }
+        ];
+
+        secretPoints.forEach(sp => {
+            let intelNode = document.createElement("div");
+            intelNode.style = `position: absolute; top: ${sp.top}%; left: ${sp.left}%; transform: translate(-50%, -50%); color: var(--danger-color); font-size: 0.5em; font-weight: bold; text-align: center; z-index: 2; animation: pulse 1s infinite;`;
+            intelNode.innerHTML = `<div style="width: 4px; height: 4px; background: var(--danger-color); border-radius: 50%; margin: 0 auto;"></div>[!] ${sp.name}`;
+            cpContainer.appendChild(intelNode);
+        });
+        
+        // 如果有情報，威脅等級前面加個 [已解碼]
+        if (threatEl.innerText.indexOf("[已解碼]") === -1) {
+            threatEl.innerText = "🔓 [已解碼] " + threatEl.innerText;
+        }
+    }
     }
 }
 
@@ -928,6 +948,11 @@ function syncMapPosition(eventId) {
         const btn = document.getElementById("dice-btn");
         
         let bonus = 2;
+        // ✨ 名校情報加成邏輯
+        if (state.currentEventId.startsWith("A") && hasItem("名校聯盟戰略情報")) {
+            bonus += 3; // 獲得極大嘅戰略優勢
+            triggerButterfly("📡 戰略情報生效：預判了名校仔的行動，檢定獲得 +3 加成！");
+        }
         if (stat === "智力") {
             let extraTime = 0;
             if (state.team.szeto) extraTime += 4; // 司徒在生，多 4 秒！
@@ -1238,7 +1263,9 @@ function syncMapPosition(eventId) {
         "半打藍妹啤酒": { type: "consumable", icon: "🍺", desc: "麻醉痛楚，壯膽一流。", stats: "HP +10 / SP +15" },
         "圍村臘肉": { type: "consumable", icon: "🥩", desc: "極高熱量的野外求生神器。", stats: "HP +20 / SP +20" },
         "中央區防火牆通行證": { type: "quest", icon: "🔑", desc: "擁有進入要塞的最高權限。", stats: "核心劇情道具" },
-        "高階權限匙卡": { type: "quest", icon: "💳", desc: "可用於解鎖終極防爆門。", stats: "核心劇情道具" }
+        "高階權限匙卡": { type: "quest", icon: "💳", desc: "可用於解鎖終極防爆門。", stats: "核心劇情道具" },
+        "名校聯盟戰略情報": { type: "quest", icon: "📡", desc: "【戰術插件】記載了 Tech City 的詳細兵力分佈。持有此物時，雷達會掃描出隱藏威脅，且對抗名校生時獲得戰術優勢。", stats: "A線全檢定 +3 / 解鎖雷達隱藏節點",intelBonus: 3 // 隱藏加成數值
+        },
     };
 
     function getItemInfo(name) {
